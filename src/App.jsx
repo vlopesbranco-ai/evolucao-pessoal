@@ -4,7 +4,6 @@ import Login from './pages/Login'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Habits from './pages/Habits'
-import Dopamine from './pages/Dopamine'
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
@@ -32,7 +31,7 @@ function AppRoutes() {
       >
         <Route index element={<Dashboard />} />
         <Route path="habitos" element={<Habits />} />
-        <Route path="dopamina" element={<Dopamine />} />
+        <Route path="dopamina" element={<Navigate to="/habitos" replace />} />
       </Route>
     </Routes>
   )
