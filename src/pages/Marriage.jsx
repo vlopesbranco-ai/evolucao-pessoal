@@ -24,6 +24,7 @@ export default function Marriage() {
   const [cycleLogs, setCycleLogs] = useState([])
   const [intimacyNote, setIntimacyNote] = useState('')
   const [intimacyDate, setIntimacyDate] = useState(todayStr())
+  const [usedProtection, setUsedProtection] = useState(true)
   const [cycleDate, setCycleDate] = useState(todayStr())
   const [cycleSymptoms, setCycleSymptoms] = useState('')
   const [cycleNote, setCycleNote] = useState('')
@@ -57,10 +58,12 @@ export default function Marriage() {
     await supabase.from('intimacy_logs').insert({
       user_id: user.id,
       occurred_at: intimacyDate,
+      used_protection: usedProtection,
       note: intimacyNote.trim() || null,
     })
     setIntimacyNote('')
     setIntimacyDate(todayStr())
+    setUsedProtection(true)
     load()
   }
 
@@ -204,6 +207,30 @@ export default function Marriage() {
               onChange={(e) => setIntimacyDate(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
+            <div className="flex gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setUsedProtection(true)}
+                className={`flex-1 px-3 py-1.5 rounded-full border ${
+                  usedProtection
+                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                Com proteção
+              </button>
+              <button
+                type="button"
+                onClick={() => setUsedProtection(false)}
+                className={`flex-1 px-3 py-1.5 rounded-full border ${
+                  !usedProtection
+                    ? 'bg-amber-500 text-white border-amber-500'
+                    : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                Sem proteção
+              </button>
+            </div>
             <input
               value={intimacyNote}
               onChange={(e) => setIntimacyNote(e.target.value)}
@@ -226,7 +253,12 @@ export default function Marriage() {
                   className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
                 >
                   <div>
-                    <p className="font-medium">{fmt(i.occurred_at)}</p>
+                    <p className="font-medium">
+                      {fmt(i.occurred_at)}{' '}
+                      <span className="text-slate-400 font-normal">
+                        {i.used_protection === null ? '' : i.used_protection ? '· com proteção' : '· sem proteção'}
+                      </span>
+                    </p>
                     {i.note && <p className="text-slate-400">{i.note}</p>}
                   </div>
                   <button onClick={() => removeIntimacy(i.id)} className="text-slate-300 hover:text-red-500">
