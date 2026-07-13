@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { todayStr, localDateStr } from '../lib/date'
 import {
   BarChart,
   Bar,
@@ -30,10 +31,6 @@ const NOTE_CATEGORIES = [
 ]
 
 const MONTH_LABELS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
 
 function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000)
@@ -221,7 +218,7 @@ export default function Marriage() {
     const lastStart = sorted[sorted.length - 1].cycle_start
     const next = new Date(lastStart + 'T00:00:00')
     next.setDate(next.getDate() + avgCycleLength)
-    predictedNext = next.toISOString().slice(0, 10)
+    predictedNext = localDateStr(next)
 
     const ovulation = new Date(next)
     ovulation.setDate(ovulation.getDate() - 14)
@@ -230,8 +227,8 @@ export default function Marriage() {
     const fertileEnd = new Date(ovulation)
     fertileEnd.setDate(fertileEnd.getDate() + 1)
     fertileWindow = {
-      start: fertileStart.toISOString().slice(0, 10),
-      end: fertileEnd.toISOString().slice(0, 10),
+      start: localDateStr(fertileStart),
+      end: localDateStr(fertileEnd),
     }
   }
 

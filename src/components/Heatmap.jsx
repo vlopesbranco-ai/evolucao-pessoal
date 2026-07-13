@@ -1,9 +1,7 @@
+import { localDateStr } from '../lib/date'
+
 // Calendário estilo "contribuições" (GitHub). data: { 'YYYY-MM-DD': count }
 const DEFAULT_COLORS = ['bg-slate-100', 'bg-emerald-200', 'bg-emerald-400', 'bg-emerald-600', 'bg-emerald-800']
-
-function toDateStr(d) {
-  return d.toISOString().slice(0, 10)
-}
 
 export default function Heatmap({ data, weeks = 16, colors = DEFAULT_COLORS, maxValue }) {
   const today = new Date()
@@ -21,7 +19,7 @@ export default function Heatmap({ data, weeks = 16, colors = DEFAULT_COLORS, max
   for (let w = 0; w < weeks; w++) {
     const days = []
     for (let d = 0; d < 7; d++) {
-      const dateStr = toDateStr(cursor)
+      const dateStr = localDateStr(cursor)
       const count = data[dateStr] ?? 0
       const isFuture = cursor > today
       const bucket = count === 0 ? 0 : Math.min(colors.length - 1, Math.ceil((count / max) * (colors.length - 1)))

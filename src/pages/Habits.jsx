@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { todayStr, localDateStr } from '../lib/date'
 
 const WEEKDAYS = [
   { value: 0, label: 'D' },
@@ -12,9 +13,7 @@ const WEEKDAYS = [
   { value: 6, label: 'S' },
 ]
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
+const SUGGESTED_CATEGORIES = ['Saúde', 'Alimentação', 'Trabalho', 'Casamento', 'Filha', 'Financeiro', 'Estudo', 'Pessoal']
 
 function isScheduledToday(habit) {
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
@@ -39,6 +38,7 @@ export default function Habits() {
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(emptyForm())
   const [loading, setLoading] = useState(true)
+  const [categoryFilter, setCategoryFilter] = useState('Todas')
 
   async function load() {
     setLoading(true)
@@ -71,9 +71,8 @@ export default function Habits() {
       let streak = 0
       let cursor = new Date()
       if (!dates.has(todayStr()) && isScheduledToday(habit)) cursor.setDate(cursor.getDate() - 1)
-      // limite de segurança: no máximo 400 dias pra trás
       for (let i = 0; i < 400; i++) {
-        const dateStr = cursor.toISOString().slice(0, 10)
+        const dateStr = localDateStr(cursor)
         if (isScheduledOn(habit, cursor)) {
           if (dates.has(dateStr)) {
             streak++
@@ -91,6 +90,22 @@ export default function Habits() {
 
   useEffect(() => {
     load()
+    // Reinicia os check-ins do dia automaticamente na virada da meia-noite local,
+    // sem precisar recarregar a página manualmente.
+    function msUntilNextMidnight() {
+      const now = new Date()
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5)
+      return next - now
+    }
+    let timeoutId
+    function scheduleReload() {
+      timeoutId = setTimeout(() => {
+        load()
+        scheduleReload()
+      }, msUntilNextMidnight())
+    }
+    scheduleReload()
+    return () => clearTimeout(timeoutId)
   }, [])
 
   function toggleDay(days, value) {
@@ -176,9 +191,168 @@ export default function Habits() {
     )
   }
 
+  function CategoryChips({ value, onChange }) {
+    return (
+      <div className="flex flex-wrap gap-1">
+        {SUGGESTED_CATEGORIES.map((c) => (
+          <button
+            type="button"
+            key={c}
+            onClick={() => onChange(c)}
+            className={`px-2.5 py-1 rounded-full text-xs border ${
+              value === c ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 text-slate-500 hover:border-slate-400'
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   function daysLabel(habit) {
     if (!habit.days_of_week || habit.days_of_week.length === 0) return 'todo dia'
     return habit.days_of_week.map((d) => WEEKDAYS[d].label).join(' ')
+  }
+
+  const categories = useMemo(() => {
+    const set = new Set(habits.map((h) => h.category?.trim()).filter(Boolean))
+    return ['Todas', ...Array.from(set).sort(), 'Sem categoria']
+  }, [habits])
+
+  const filteredHabits = useMemo(() => {
+    if (categoryFilter === 'Todas') return habits
+    if (categoryFilter === 'Sem categoria') return habits.filter((h) => !h.category)
+    return habits.filter((h) => h.category === categoryFilter)
+  }, [habits, categoryFilter])
+
+  const grouped = useMemo(() => {
+    const groups = {}
+    for (const habit of filteredHabits) {
+      const key = habit.category?.trim() || 'Sem categoria'
+      if (!groups[key]) groups[key] = []
+      groups[key].push(habit)
+    }
+    return Object.entries(groups).sort(([a], [b]) => {
+      if (a === 'Sem categoria') return 1
+      if (b === 'Sem categoria') return -1
+      return a.localeCompare(b)
+    })
+  }, [filteredHabits])
+
+  function renderHabitRow(habit) {
+    const done = logsToday.has(habit.id)
+    const scheduledToday = isScheduledToday(habit)
+    const isEditing = editingId === habit.id
+
+    if (isEditing) {
+      return (
+        <li key={habit.id} className="bg-white border border-slate-300 rounded-xl p-3 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <input
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              className="flex-1 min-w-[220px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+            <input
+              value={editForm.category}
+              onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+              placeholder="Categoria"
+              className="w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <CategoryChips value={editForm.category} onChange={(c) => setEditForm({ ...editForm, category: c })} />
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setEditForm({ ...editForm, habit_type: 'build' })}
+                className={`px-3 py-1.5 rounded-full border ${
+                  editForm.habit_type === 'build'
+                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                Fazer
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditForm({ ...editForm, habit_type: 'avoid' })}
+                className={`px-3 py-1.5 rounded-full border ${
+                  editForm.habit_type === 'avoid'
+                    ? 'bg-red-500 text-white border-red-500'
+                    : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                Evitar
+              </button>
+            </div>
+            <DaysPicker
+              value={editForm.days_of_week}
+              onChange={(v) => setEditForm({ ...editForm, days_of_week: v })}
+            />
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={() => setEditingId(null)}
+                className="text-xs text-slate-500 px-3 py-2 hover:text-slate-800"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => saveEdit(habit.id)}
+                className="rounded-lg bg-slate-900 text-white px-4 py-2 text-xs font-medium hover:bg-slate-800"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </li>
+      )
+    }
+
+    return (
+      <li
+        key={habit.id}
+        className={`flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 ${
+          !scheduledToday ? 'opacity-50' : ''
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => scheduledToday && toggleToday(habit)}
+            disabled={!scheduledToday}
+            className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${
+              done
+                ? habit.habit_type === 'avoid'
+                  ? 'bg-red-500 border-red-500 text-white'
+                  : 'bg-emerald-500 border-emerald-500 text-white'
+                : 'border-slate-300 text-transparent hover:border-slate-400'
+            } ${!scheduledToday ? 'cursor-not-allowed' : ''}`}
+          >
+            ✓
+          </button>
+          <div>
+            <p className="text-sm font-medium text-slate-800">
+              {habit.habit_type === 'avoid' ? '🚫 ' : ''}
+              {habit.name}
+            </p>
+            <p className="text-xs text-slate-400">
+              {daysLabel(habit)}
+              {!scheduledToday ? ' · não é hoje' : ''}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500">🔥 {streaks[habit.id] ?? 0}d</span>
+          <button onClick={() => startEdit(habit)} className="text-xs text-slate-400 hover:text-slate-800">
+            editar
+          </button>
+          <button onClick={() => archive(habit)} className="text-xs text-slate-300 hover:text-red-500">
+            arquivar
+          </button>
+        </div>
+      </li>
+    )
   }
 
   return (
@@ -203,6 +377,7 @@ export default function Habits() {
             className="w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm"
           />
         </div>
+        <CategoryChips value={form.category} onChange={(c) => setForm({ ...form, category: c })} />
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex gap-1 text-xs">
             <button
@@ -235,133 +410,39 @@ export default function Habits() {
         </div>
       </form>
 
+      {categories.length > 2 && (
+        <div className="flex flex-wrap gap-1">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategoryFilter(c)}
+              className={`px-3 py-1.5 rounded-full text-xs border ${
+                categoryFilter === c
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'border-slate-300 text-slate-500 hover:border-slate-400'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <p className="text-sm text-slate-400">Carregando...</p>
       ) : habits.length === 0 ? (
         <p className="text-sm text-slate-400">Nenhum hábito ainda. Adicione o primeiro acima.</p>
       ) : (
-        <ul className="space-y-2">
-          {habits.map((habit) => {
-            const done = logsToday.has(habit.id)
-            const scheduledToday = isScheduledToday(habit)
-            const isEditing = editingId === habit.id
-
-            if (isEditing) {
-              return (
-                <li key={habit.id} className="bg-white border border-slate-300 rounded-xl p-3 space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    <input
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="flex-1 min-w-[220px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    />
-                    <input
-                      value={editForm.category}
-                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                      placeholder="Categoria"
-                      className="w-40 rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex gap-1 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setEditForm({ ...editForm, habit_type: 'build' })}
-                        className={`px-3 py-1.5 rounded-full border ${
-                          editForm.habit_type === 'build'
-                            ? 'bg-emerald-500 text-white border-emerald-500'
-                            : 'border-slate-300 text-slate-500'
-                        }`}
-                      >
-                        Fazer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditForm({ ...editForm, habit_type: 'avoid' })}
-                        className={`px-3 py-1.5 rounded-full border ${
-                          editForm.habit_type === 'avoid'
-                            ? 'bg-red-500 text-white border-red-500'
-                            : 'border-slate-300 text-slate-500'
-                        }`}
-                      >
-                        Evitar
-                      </button>
-                    </div>
-                    <DaysPicker
-                      value={editForm.days_of_week}
-                      onChange={(v) => setEditForm({ ...editForm, days_of_week: v })}
-                    />
-                    <div className="ml-auto flex gap-2">
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="text-xs text-slate-500 px-3 py-2 hover:text-slate-800"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={() => saveEdit(habit.id)}
-                        className="rounded-lg bg-slate-900 text-white px-4 py-2 text-xs font-medium hover:bg-slate-800"
-                      >
-                        Salvar
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              )
-            }
-
-            return (
-              <li
-                key={habit.id}
-                className={`flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 ${
-                  !scheduledToday ? 'opacity-50' : ''
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => scheduledToday && toggleToday(habit)}
-                    disabled={!scheduledToday}
-                    className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${
-                      done
-                        ? habit.habit_type === 'avoid'
-                          ? 'bg-red-500 border-red-500 text-white'
-                          : 'bg-emerald-500 border-emerald-500 text-white'
-                        : 'border-slate-300 text-transparent hover:border-slate-400'
-                    } ${!scheduledToday ? 'cursor-not-allowed' : ''}`}
-                  >
-                    ✓
-                  </button>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">
-                      {habit.habit_type === 'avoid' ? '🚫 ' : ''}
-                      {habit.name}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {habit.category ? `${habit.category} · ` : ''}
-                      {daysLabel(habit)}
-                      {!scheduledToday ? ' · não é hoje' : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500">🔥 {streaks[habit.id] ?? 0}d</span>
-                  <button
-                    onClick={() => startEdit(habit)}
-                    className="text-xs text-slate-400 hover:text-slate-800"
-                  >
-                    editar
-                  </button>
-                  <button
-                    onClick={() => archive(habit)}
-                    className="text-xs text-slate-300 hover:text-red-500"
-                  >
-                    arquivar
-                  </button>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="space-y-5">
+          {grouped.map(([category, items]) => (
+            <div key={category} className="space-y-2">
+              {categoryFilter === 'Todas' && (
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{category}</p>
+              )}
+              <ul className="space-y-2">{items.map(renderHabitRow)}</ul>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )

@@ -4,10 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { supabase } from '../lib/supabaseClient'
 import Heatmap from '../components/Heatmap'
 import { XP_PER_CHECKIN, levelForXp } from '../lib/gamification'
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
+import { todayStr, localDateStr } from '../lib/date'
 
 function isScheduledToday(habit) {
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
@@ -40,7 +37,7 @@ export default function Dashboard() {
         supabase
           .from('habit_logs')
           .select('habit_id, log_date')
-          .gte('log_date', since.toISOString().slice(0, 10)),
+          .gte('log_date', localDateStr(since)),
       ])
 
       const todayLogs = (logs ?? []).filter((l) => l.log_date === todayStr())
@@ -61,7 +58,7 @@ export default function Dashboard() {
       // agrupa por semana (últimas 8)
       const weekBuckets = {}
       for (const log of logs ?? []) {
-        const weekStart = startOfWeek(new Date(log.log_date + 'T00:00:00')).toISOString().slice(0, 10)
+        const weekStart = localDateStr(startOfWeek(new Date(log.log_date + 'T00:00:00')))
         weekBuckets[weekStart] = (weekBuckets[weekStart] ?? 0) + 1
       }
       const weeks = []
@@ -69,7 +66,7 @@ export default function Dashboard() {
       for (let i = 7; i >= 0; i--) {
         const d = new Date(cursor)
         d.setDate(d.getDate() - i * 7)
-        const key = d.toISOString().slice(0, 10)
+        const key = localDateStr(d)
         weeks.push({
           label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
           count: weekBuckets[key] ?? 0,
