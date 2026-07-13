@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Painel', end: true },
   { to: '/habitos', label: 'Hábitos' },
   { to: '/casamento', label: 'Casamento' },
+  { to: '/calendario', label: 'Calendário' },
 ]
 
 export default function Layout() {
