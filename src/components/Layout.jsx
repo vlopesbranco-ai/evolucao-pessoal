@@ -6,6 +6,7 @@ const links = [
   { to: '/habitos', label: 'Hábitos' },
   { to: '/casamento', label: 'Casamento' },
   { to: '/calendario', label: 'Calendário' },
+  { to: '/conteudo', label: 'Conteúdo' },
 ]
 
 export default function Layout() {
