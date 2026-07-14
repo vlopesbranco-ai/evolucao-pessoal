@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { todayStr, localDateStr } from '../lib/date'
+import { EVENT_CATEGORIES, categoryInfo } from '../lib/eventCategories'
 
 const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const MONTH_LABELS = [
@@ -9,19 +11,6 @@ const MONTH_LABELS = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
-const EVENT_CATEGORIES = [
-  { value: 'ferias', label: 'Férias', emoji: '🏖️' },
-  { value: 'viagem', label: 'Viagem', emoji: '✈️' },
-  { value: 'encontro', label: 'Encontro', emoji: '💑' },
-  { value: 'festa', label: 'Festa', emoji: '🎉' },
-  { value: 'aniversario', label: 'Aniversário', emoji: '🎂' },
-  { value: 'filha', label: 'Filha', emoji: '👶' },
-  { value: 'outro', label: 'Outro', emoji: '📌' },
-]
-
-function categoryInfo(value) {
-  return EVENT_CATEGORIES.find((c) => c.value === value) ?? EVENT_CATEGORIES[EVENT_CATEGORIES.length - 1]
-}
 
 function fmt(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -33,7 +22,6 @@ function fmt(dateStr) {
 
 export default function CalendarPage() {
   const { user } = useAuth()
-  const [view, setView] = useState('grid') // 'grid' | 'diario'
   const [monthCursor, setMonthCursor] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -44,6 +32,7 @@ export default function CalendarPage() {
   const [tasks, setTasks] = useState([])
   const [importantDates, setImportantDates] = useState([])
   const [events, setEvents] = useState([])
+  const [intimacyLogs, setIntimacyLogs] = useState([])
   const [loading, setLoading] = useState(true)
 
   const [taskTitle, setTaskTitle] = useState('')
@@ -56,14 +45,16 @@ export default function CalendarPage() {
 
   async function load() {
     setLoading(true)
-    const [{ data: taskData }, { data: dateData }, { data: eventData }] = await Promise.all([
+    const [{ data: taskData }, { data: dateData }, { data: eventData }, { data: intimacyData }] = await Promise.all([
       supabase.from('tasks').select('*').order('due_date', { ascending: true }),
       supabase.from('important_dates').select('*'),
       supabase.from('calendar_events').select('*').order('start_date', { ascending: false }),
+      supabase.from('intimacy_logs').select('id, occurred_at').limit(1000),
     ])
     setTasks(taskData ?? [])
     setImportantDates(dateData ?? [])
     setEvents(eventData ?? [])
+    setIntimacyLogs(intimacyData ?? [])
     setLoading(false)
   }
 
@@ -118,7 +109,6 @@ export default function CalendarPage() {
     load()
   }
 
-  // datas importantes que caem num dia específico (considera recorrência anual)
   function importantDatesOn(dateStr) {
     const [y, m, d] = dateStr.split('-').map(Number)
     return importantDates.filter((imp) => {
@@ -137,6 +127,10 @@ export default function CalendarPage() {
       const end = ev.end_date || ev.start_date
       return dateStr >= ev.start_date && dateStr <= end
     })
+  }
+
+  function intimacyOn(dateStr) {
+    return intimacyLogs.filter((i) => i.occurred_at === dateStr)
   }
 
   const grid = useMemo(() => {
@@ -164,294 +158,274 @@ export default function CalendarPage() {
   const selectedTasks = tasksOn(selectedDate)
   const selectedImportant = importantDatesOn(selectedDate)
   const selectedEvents = eventsOn(selectedDate)
+  const selectedIntimacy = intimacyOn(selectedDate)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900">Calendário</h1>
-          <p className="text-sm text-slate-500">Tarefas, eventos e datas importantes, tudo num lugar só.</p>
-        </div>
-        <div className="flex gap-1 text-xs">
-          <button
-            onClick={() => setView('grid')}
-            className={`px-3 py-1.5 rounded-full border ${
-              view === 'grid' ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 text-slate-500'
-            }`}
-          >
-            Calendário
-          </button>
-          <button
-            onClick={() => setView('diario')}
-            className={`px-3 py-1.5 rounded-full border ${
-              view === 'diario' ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 text-slate-500'
-            }`}
-          >
-            Diário
-          </button>
-        </div>
+      <div>
+        <h1 className="text-lg font-semibold text-slate-900">Calendário</h1>
+        <p className="text-sm text-slate-500">Tarefas, eventos, datas importantes e intimidade, tudo num lugar só.</p>
       </div>
 
-      {view === 'grid' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <button
-                onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}
-                className="text-slate-400 hover:text-slate-800 px-2"
-              >
-                ‹
-              </button>
-              <p className="text-sm font-medium text-slate-800">
-                {MONTH_LABELS[monthCursor.getMonth()]} {monthCursor.getFullYear()}
-              </p>
-              <button
-                onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1))}
-                className="text-slate-400 hover:text-slate-800 px-2"
-              >
-                ›
-              </button>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-1">
-              {WEEKDAY_LABELS.map((l, i) => (
-                <div key={i}>{l}</div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-1">
-              {grid.map((date) => {
-                const dateStr = localDateStr(date)
-                const inMonth = date.getMonth() === monthCursor.getMonth()
-                const isToday = dateStr === todayStr()
-                const isSelected = dateStr === selectedDate
-                const dayTasks = tasksOn(dateStr)
-                const dayImportant = importantDatesOn(dateStr)
-                const dayEvents = eventsOn(dateStr)
-                const hasItems = dayTasks.length > 0 || dayImportant.length > 0 || dayEvents.length > 0
-
-                return (
-                  <button
-                    key={dateStr}
-                    onClick={() => setSelectedDate(dateStr)}
-                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${
-                      isSelected
-                        ? 'border-slate-900 bg-slate-900 text-white'
-                        : isToday
-                        ? 'border-slate-900 text-slate-900'
-                        : inMonth
-                        ? 'border-transparent text-slate-700 hover:bg-slate-50'
-                        : 'border-transparent text-slate-300'
-                    }`}
-                  >
-                    <span>{date.getDate()}</span>
-                    {hasItems && (
-                      <span className="flex gap-0.5">
-                        {dayTasks.length > 0 && (
-                          <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-sky-500'}`} />
-                        )}
-                        {dayEvents.length > 0 && (
-                          <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-violet-500'}`} />
-                        )}
-                        {dayImportant.length > 0 && (
-                          <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-500'}`} />
-                        )}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}
+              className="text-slate-400 hover:text-slate-800 px-2"
+            >
+              ‹
+            </button>
+            <p className="text-sm font-medium text-slate-800">
+              {MONTH_LABELS[monthCursor.getMonth()]} {monthCursor.getFullYear()}
+            </p>
+            <button
+              onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1))}
+              className="text-slate-400 hover:text-slate-800 px-2"
+            >
+              ›
+            </button>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-              <p className="text-sm font-medium text-slate-800">{fmt(selectedDate)}</p>
+          <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-1">
+            {WEEKDAY_LABELS.map((l, i) => (
+              <div key={i}>{l}</div>
+            ))}
+          </div>
 
-              {selectedImportant.length > 0 && (
-                <ul className="space-y-1">
-                  {selectedImportant.map((imp) => (
-                    <li key={imp.id} className="text-xs text-rose-600 bg-rose-50 rounded-lg px-2 py-1">
-                      🎉 {imp.title}
-                    </li>
-                  ))}
-                </ul>
-              )}
+          <div className="grid grid-cols-7 gap-1">
+            {grid.map((date) => {
+              const dateStr = localDateStr(date)
+              const inMonth = date.getMonth() === monthCursor.getMonth()
+              const isToday = dateStr === todayStr()
+              const isSelected = dateStr === selectedDate
+              const dayTasks = tasksOn(dateStr)
+              const dayImportant = importantDatesOn(dateStr)
+              const dayEvents = eventsOn(dateStr)
+              const dayIntimacy = intimacyOn(dateStr)
+              const eventCategoriesToday = [...new Set(dayEvents.map((e) => e.category))]
 
-              {selectedEvents.length > 0 && (
-                <ul className="space-y-1">
-                  {selectedEvents.map((ev) => (
-                    <li key={ev.id} className="flex items-start justify-between gap-2 text-xs bg-violet-50 rounded-lg px-2 py-1.5">
-                      <div className="text-violet-700">
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${
+                    isSelected
+                      ? 'border-slate-900 bg-slate-900 text-white'
+                      : isToday
+                      ? 'border-slate-900 text-slate-900'
+                      : inMonth
+                      ? 'border-transparent text-slate-700 hover:bg-slate-50'
+                      : 'border-transparent text-slate-300'
+                  }`}
+                >
+                  <span>{date.getDate()}</span>
+                  <span className="flex gap-0.5 flex-wrap justify-center max-w-[24px]">
+                    {dayTasks.length > 0 && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-sky-500'}`} />
+                    )}
+                    {eventCategoriesToday.map((cat) => (
+                      <span
+                        key={cat}
+                        className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : categoryInfo(cat).dot}`}
+                      />
+                    ))}
+                    {dayImportant.length > 0 && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-500'}`} />
+                    )}
+                    {dayIntimacy.length > 0 && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-red-600'}`} />
+                    )}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-3 mt-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500" /> Tarefa</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Data importante</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-600" /> Intimidade</span>
+            {EVENT_CATEGORIES.map((c) => (
+              <span key={c.value} className="flex items-center gap-1">
+                <span className={`w-2 h-2 rounded-full ${c.dot}`} /> {c.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-slate-800">{fmt(selectedDate)}</p>
+
+            {selectedImportant.length > 0 && (
+              <ul className="space-y-1">
+                {selectedImportant.map((imp) => (
+                  <li key={imp.id} className="text-xs text-rose-600 bg-rose-50 rounded-lg px-2 py-1">
+                    🎉 {imp.title}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {selectedIntimacy.length > 0 && (
+              <Link
+                to="/casamento"
+                className="block text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1 hover:bg-red-100"
+              >
+                ❤️ Atividade íntima registrada (ver em Casamento)
+              </Link>
+            )}
+
+            {selectedEvents.length > 0 && (
+              <ul className="space-y-1">
+                {selectedEvents.map((ev) => {
+                  const info = categoryInfo(ev.category)
+                  return (
+                    <li key={ev.id} className={`flex items-start justify-between gap-2 text-xs rounded-lg px-2 py-1.5 ${info.bg}`}>
+                      <div className={info.text}>
                         <span>
-                          {categoryInfo(ev.category).emoji} {ev.title}
+                          {info.emoji} {ev.title}
                         </span>
                         {ev.end_date && ev.end_date !== ev.start_date && (
-                          <span className="block text-violet-400">
+                          <span className="block opacity-70">
                             {fmt(ev.start_date)} a {fmt(ev.end_date)}
                           </span>
                         )}
-                        {ev.note && <span className="block text-violet-400">{ev.note}</span>}
+                        {ev.note && <span className="block opacity-70">{ev.note}</span>}
                       </div>
                       <button onClick={() => removeEvent(ev.id)} className="text-slate-300 hover:text-red-500">
                         ×
                       </button>
                     </li>
-                  ))}
-                </ul>
-              )}
+                  )
+                })}
+              </ul>
+            )}
 
-              {selectedTasks.length > 0 && (
-                <ul className="space-y-1">
-                  {selectedTasks.map((t) => (
-                    <li key={t.id} className="flex items-start justify-between gap-2 text-xs bg-sky-50 rounded-lg px-2 py-1.5">
-                      <label className="flex items-start gap-2 flex-1">
-                        <input type="checkbox" checked={t.done} onChange={() => toggleTask(t)} className="mt-0.5" />
-                        <span className={t.done ? 'line-through text-slate-400' : 'text-sky-700'}>
-                          {t.title}
-                          {t.note && <span className="block text-slate-400">{t.note}</span>}
-                        </span>
-                      </label>
-                      <button onClick={() => removeTask(t.id)} className="text-slate-300 hover:text-red-500">
-                        ×
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            {selectedTasks.length > 0 && (
+              <ul className="space-y-1">
+                {selectedTasks.map((t) => (
+                  <li key={t.id} className="flex items-start justify-between gap-2 text-xs bg-sky-50 rounded-lg px-2 py-1.5">
+                    <label className="flex items-start gap-2 flex-1">
+                      <input type="checkbox" checked={t.done} onChange={() => toggleTask(t)} className="mt-0.5" />
+                      <span className={t.done ? 'line-through text-slate-400' : 'text-sky-700'}>
+                        {t.title}
+                        {t.note && <span className="block text-slate-400">{t.note}</span>}
+                      </span>
+                    </label>
+                    <button onClick={() => removeTask(t.id)} className="text-slate-300 hover:text-red-500">
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-              <div className="flex gap-1 text-xs pt-2 border-t border-slate-100">
-                <button
-                  onClick={() => setAddMode('task')}
-                  className={`flex-1 py-1.5 rounded-lg border ${
-                    addMode === 'task' ? 'bg-sky-500 text-white border-sky-500' : 'border-slate-300 text-slate-500'
-                  }`}
-                >
-                  + Tarefa
-                </button>
-                <button
-                  onClick={() => setAddMode('event')}
-                  className={`flex-1 py-1.5 rounded-lg border ${
-                    addMode === 'event' ? 'bg-violet-500 text-white border-violet-500' : 'border-slate-300 text-slate-500'
-                  }`}
-                >
-                  + Evento
-                </button>
-              </div>
-
-              {addMode === 'task' ? (
-                <form onSubmit={addTask} className="space-y-2">
-                  <input
-                    value={taskTitle}
-                    onChange={(e) => setTaskTitle(e.target.value)}
-                    placeholder="Nova tarefa nesse dia"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  />
-                  <input
-                    value={taskNote}
-                    onChange={(e) => setTaskNote(e.target.value)}
-                    placeholder="Nota (opcional)"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  />
-                  <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
-                    Adicionar tarefa
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={addEvent} className="space-y-2">
-                  <input
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    placeholder="Nome do evento"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  />
-                  <div className="flex flex-wrap gap-1">
-                    {EVENT_CATEGORIES.map((c) => (
-                      <button
-                        type="button"
-                        key={c.value}
-                        onClick={() => setEventCategory(c.value)}
-                        className={`px-2.5 py-1 rounded-full text-xs border ${
-                          eventCategory === c.value
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'border-slate-300 text-slate-500'
-                        }`}
-                      >
-                        {c.emoji} {c.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-400">Termina em (opcional, pra férias/viagens)</label>
-                    <input
-                      type="date"
-                      value={eventEnd}
-                      onChange={(e) => setEventEnd(e.target.value)}
-                      min={selectedDate}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mt-1"
-                    />
-                  </div>
-                  <textarea
-                    value={eventNote}
-                    onChange={(e) => setEventNote(e.target.value)}
-                    placeholder="Anotação (opcional) — como foi, quem estava, memórias..."
-                    rows={2}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  />
-                  <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
-                    Adicionar evento
-                  </button>
-                </form>
-              )}
+            <div className="flex gap-1 text-xs pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setAddMode('task')}
+                className={`flex-1 py-1.5 rounded-lg border ${
+                  addMode === 'task' ? 'bg-sky-500 text-white border-sky-500' : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                + Tarefa
+              </button>
+              <button
+                onClick={() => setAddMode('event')}
+                className={`flex-1 py-1.5 rounded-lg border ${
+                  addMode === 'event' ? 'bg-violet-500 text-white border-violet-500' : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                + Evento
+              </button>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <p className="text-sm font-medium text-slate-800 mb-2">Próximas tarefas</p>
-              {loading ? (
-                <p className="text-xs text-slate-400">Carregando...</p>
-              ) : upcomingTasks.length === 0 ? (
-                <p className="text-xs text-slate-400">Nenhuma tarefa pendente.</p>
-              ) : (
-                <ul className="space-y-1">
-                  {upcomingTasks.map((t) => (
-                    <li key={t.id} className="flex items-center justify-between text-xs text-slate-600">
-                      <span>{t.title}</span>
-                      <span className="text-slate-400">{t.due_date ? fmt(t.due_date) : 'sem data'}</span>
-                    </li>
+            {addMode === 'task' ? (
+              <form onSubmit={addTask} className="space-y-2">
+                <input
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  placeholder="Nova tarefa nesse dia"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                />
+                <input
+                  value={taskNote}
+                  onChange={(e) => setTaskNote(e.target.value)}
+                  placeholder="Nota (opcional)"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                />
+                <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+                  Adicionar tarefa
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={addEvent} className="space-y-2">
+                <input
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                  placeholder="Nome do evento"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                />
+                <div className="flex flex-wrap gap-1">
+                  {EVENT_CATEGORIES.map((c) => (
+                    <button
+                      type="button"
+                      key={c.value}
+                      onClick={() => setEventCategory(c.value)}
+                      className={`px-2.5 py-1 rounded-full text-xs border ${
+                        eventCategory === c.value
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'border-slate-300 text-slate-500'
+                      }`}
+                    >
+                      {c.emoji} {c.label}
+                    </button>
                   ))}
-                </ul>
-              )}
-            </div>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400">Termina em (opcional, pra férias/viagens)</label>
+                  <input
+                    type="date"
+                    value={eventEnd}
+                    onChange={(e) => setEventEnd(e.target.value)}
+                    min={selectedDate}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mt-1"
+                  />
+                </div>
+                <textarea
+                  value={eventNote}
+                  onChange={(e) => setEventNote(e.target.value)}
+                  placeholder="Anotação (opcional)"
+                  rows={2}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                />
+                <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+                  Adicionar evento
+                </button>
+              </form>
+            )}
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
+            <p className="text-sm font-medium text-slate-800 mb-2">Próximas tarefas</p>
+            {loading ? (
+              <p className="text-xs text-slate-400">Carregando...</p>
+            ) : upcomingTasks.length === 0 ? (
+              <p className="text-xs text-slate-400">Nenhuma tarefa pendente.</p>
+            ) : (
+              <ul className="space-y-1">
+                {upcomingTasks.map((t) => (
+                  <li key={t.id} className="flex items-center justify-between text-xs text-slate-600">
+                    <span>{t.title}</span>
+                    <span className="text-slate-400">{t.due_date ? fmt(t.due_date) : 'sem data'}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
-      )}
-
-      {view === 'diario' && (
-        <div className="space-y-2">
-          {loading ? (
-            <p className="text-sm text-slate-400">Carregando...</p>
-          ) : events.length === 0 ? (
-            <p className="text-sm text-slate-400">Nenhum evento registrado ainda. Adicione pela aba Calendário.</p>
-          ) : (
-            events.map((ev) => (
-              <div key={ev.id} className="bg-white border border-slate-200 rounded-xl p-4 flex justify-between gap-3">
-                <div>
-                  <p className="text-xs text-slate-400">
-                    {fmt(ev.start_date)}
-                    {ev.end_date && ev.end_date !== ev.start_date ? ` a ${fmt(ev.end_date)}` : ''} ·{' '}
-                    {categoryInfo(ev.category).emoji} {categoryInfo(ev.category).label}
-                  </p>
-                  <p className="text-sm font-medium text-slate-800">{ev.title}</p>
-                  {ev.note && <p className="text-sm text-slate-500 mt-1">{ev.note}</p>}
-                </div>
-                <button onClick={() => removeEvent(ev.id)} className="text-slate-300 hover:text-red-500 shrink-0">
-                  remover
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      </div>
     </div>
   )
 }

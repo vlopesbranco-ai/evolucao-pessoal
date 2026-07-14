@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabaseClient'
 import Heatmap from '../components/Heatmap'
 import { XP_PER_CHECKIN, levelForXp } from '../lib/gamification'
 import { todayStr, localDateStr } from '../lib/date'
+import { categoryInfo } from '../lib/eventCategories'
 
 function isScheduledToday(habit) {
+  if (habit.times_per_week) return true
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
   return habit.days_of_week.includes(new Date().getDay())
 }
@@ -18,12 +20,18 @@ function startOfWeek(date) {
   return d
 }
 
+function fmtShort(dateStr) {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
 export default function Dashboard() {
   const [build, setBuild] = useState({ done: 0, total: 0 })
   const [avoid, setAvoid] = useState({ done: 0, total: 0 })
   const [heatmapData, setHeatmapData] = useState({})
   const [weeklyData, setWeeklyData] = useState([])
   const [xp, setXp] = useState(0)
+  const [weekTasks, setWeekTasks] = useState([])
+  const [weekEvents, setWeekEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,12 +40,25 @@ export default function Dashboard() {
       const since = new Date()
       since.setDate(since.getDate() - 16 * 7)
 
-      const [{ data: habits }, { data: logs }] = await Promise.all([
+      const weekStartDate = startOfWeek(new Date())
+      const weekEndDate = new Date(weekStartDate)
+      weekEndDate.setDate(weekEndDate.getDate() + 6)
+      const weekStartStr = localDateStr(weekStartDate)
+      const weekEndStr = localDateStr(weekEndDate)
+
+      const [{ data: habits }, { data: logs }, { data: taskData }, { data: eventData }] = await Promise.all([
         supabase.from('habits').select('*').eq('archived', false),
         supabase
           .from('habit_logs')
           .select('habit_id, log_date')
           .gte('log_date', localDateStr(since)),
+        supabase
+          .from('tasks')
+          .select('*')
+          .gte('due_date', weekStartStr)
+          .lte('due_date', weekEndStr)
+          .order('due_date', { ascending: true }),
+        supabase.from('calendar_events').select('*'),
       ])
 
       const todayLogs = (logs ?? []).filter((l) => l.log_date === todayStr())
@@ -55,11 +76,10 @@ export default function Dashboard() {
       }
       setHeatmapData(heatmap)
 
-      // agrupa por semana (últimas 8)
       const weekBuckets = {}
       for (const log of logs ?? []) {
-        const weekStart = localDateStr(startOfWeek(new Date(log.log_date + 'T00:00:00')))
-        weekBuckets[weekStart] = (weekBuckets[weekStart] ?? 0) + 1
+        const ws = localDateStr(startOfWeek(new Date(log.log_date + 'T00:00:00')))
+        weekBuckets[ws] = (weekBuckets[ws] ?? 0) + 1
       }
       const weeks = []
       const cursor = startOfWeek(new Date())
@@ -73,14 +93,29 @@ export default function Dashboard() {
         })
       }
       setWeeklyData(weeks)
-
       setXp((logs ?? []).length * XP_PER_CHECKIN)
+
+      setWeekTasks(taskData ?? [])
+      const eventsThisWeek = (eventData ?? []).filter((ev) => {
+        const end = ev.end_date || ev.start_date
+        return end >= weekStartStr && ev.start_date <= weekEndStr
+      })
+      setWeekEvents(eventsThisWeek)
+
       setLoading(false)
     }
     load()
   }, [])
 
   const levelInfo = useMemo(() => levelForXp(xp), [xp])
+
+  const weekItems = useMemo(() => {
+    const items = [
+      ...weekTasks.map((t) => ({ type: 'task', date: t.due_date, title: t.title, done: t.done })),
+      ...weekEvents.map((ev) => ({ type: 'event', date: ev.start_date, title: ev.title, category: ev.category })),
+    ]
+    return items.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+  }, [weekTasks, weekEvents])
 
   return (
     <div className="space-y-6">
@@ -122,6 +157,36 @@ export default function Dashboard() {
           </p>
           <p className="text-xs text-slate-500 mt-1">resistidos hoje</p>
         </Link>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-slate-800">Essa semana</p>
+          <Link to="/calendario" className="text-xs text-slate-400 hover:text-slate-700">
+            ver calendário
+          </Link>
+        </div>
+        {loading ? (
+          <p className="text-xs text-slate-400">Carregando...</p>
+        ) : weekItems.length === 0 ? (
+          <p className="text-xs text-slate-400">Nada marcado pra essa semana.</p>
+        ) : (
+          <ul className="space-y-1">
+            {weekItems.map((item, i) => (
+              <li key={i} className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      item.type === 'task' ? 'bg-sky-500' : categoryInfo(item.category).dot
+                    }`}
+                  />
+                  <span className={item.done ? 'line-through text-slate-400' : 'text-slate-700'}>{item.title}</span>
+                </span>
+                <span className="text-slate-400">{item.date ? fmtShort(item.date) : ''}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {!loading && (

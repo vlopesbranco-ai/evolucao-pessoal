@@ -15,18 +15,53 @@ const WEEKDAYS = [
 
 const SUGGESTED_CATEGORIES = ['Saúde', 'Alimentação', 'Trabalho', 'Casamento', 'Filha', 'Financeiro', 'Estudo', 'Pessoal']
 
+function isFlexible(habit) {
+  return !!habit.times_per_week
+}
+
 function isScheduledToday(habit) {
+  if (isFlexible(habit)) return true
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
   return habit.days_of_week.includes(new Date().getDay())
 }
 
 function isScheduledOn(habit, date) {
+  if (isFlexible(habit)) return true
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
   return habit.days_of_week.includes(date.getDay())
 }
 
+function startOfWeek(date) {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - d.getDay())
+  return d
+}
+
 function emptyForm() {
-  return { name: '', category: '', habit_type: 'build', days_of_week: [] }
+  return { name: '', category: '', habit_type: 'build', scheduleMode: 'daily', days_of_week: [], times_per_week: 3 }
+}
+
+function habitToForm(habit) {
+  const scheduleMode = habit.times_per_week ? 'weekly' : habit.days_of_week?.length ? 'days' : 'daily'
+  return {
+    name: habit.name,
+    category: habit.category ?? '',
+    habit_type: habit.habit_type ?? 'build',
+    scheduleMode,
+    days_of_week: habit.days_of_week ?? [],
+    times_per_week: habit.times_per_week ?? 3,
+  }
+}
+
+function formToPayload(form) {
+  return {
+    name: form.name.trim(),
+    category: form.category.trim() || null,
+    habit_type: form.habit_type,
+    days_of_week: form.scheduleMode === 'days' && form.days_of_week.length ? form.days_of_week : null,
+    times_per_week: form.scheduleMode === 'weekly' ? form.times_per_week : null,
+  }
 }
 
 export default function Habits() {
@@ -34,6 +69,7 @@ export default function Habits() {
   const [habits, setHabits] = useState([])
   const [logsToday, setLogsToday] = useState(new Set())
   const [streaks, setStreaks] = useState({})
+  const [weeklyProgress, setWeeklyProgress] = useState({})
   const [form, setForm] = useState(emptyForm())
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(emptyForm())
@@ -65,9 +101,24 @@ export default function Habits() {
       if (!byHabit[log.habit_id]) byHabit[log.habit_id] = new Set()
       byHabit[log.habit_id].add(log.log_date)
     }
+
+    const weekStart = localDateStr(startOfWeek(new Date()))
+    const weekEnd = localDateStr(new Date(startOfWeek(new Date()).getTime() + 6 * 86400000))
+
     const streakMap = {}
+    const weeklyMap = {}
     for (const habit of habitsData ?? []) {
       const dates = byHabit[habit.id] ?? new Set()
+
+      if (isFlexible(habit)) {
+        let count = 0
+        for (const d of dates) {
+          if (d >= weekStart && d <= weekEnd) count++
+        }
+        weeklyMap[habit.id] = count
+        continue
+      }
+
       let streak = 0
       let cursor = new Date()
       if (!dates.has(todayStr()) && isScheduledToday(habit)) cursor.setDate(cursor.getDate() - 1)
@@ -85,13 +136,12 @@ export default function Habits() {
       streakMap[habit.id] = streak
     }
     setStreaks(streakMap)
+    setWeeklyProgress(weeklyMap)
     setLoading(false)
   }
 
   useEffect(() => {
     load()
-    // Reinicia os check-ins do dia automaticamente na virada da meia-noite local,
-    // sem precisar recarregar a página manualmente.
     function msUntilNextMidnight() {
       const now = new Date()
       const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5)
@@ -115,38 +165,19 @@ export default function Habits() {
   async function addHabit(e) {
     e.preventDefault()
     if (!form.name.trim()) return
-    await supabase.from('habits').insert({
-      user_id: user.id,
-      name: form.name.trim(),
-      category: form.category.trim() || null,
-      habit_type: form.habit_type,
-      days_of_week: form.days_of_week.length ? form.days_of_week : null,
-    })
+    await supabase.from('habits').insert({ user_id: user.id, ...formToPayload(form) })
     setForm(emptyForm())
     load()
   }
 
   function startEdit(habit) {
     setEditingId(habit.id)
-    setEditForm({
-      name: habit.name,
-      category: habit.category ?? '',
-      habit_type: habit.habit_type ?? 'build',
-      days_of_week: habit.days_of_week ?? [],
-    })
+    setEditForm(habitToForm(habit))
   }
 
   async function saveEdit(habitId) {
     if (!editForm.name.trim()) return
-    await supabase
-      .from('habits')
-      .update({
-        name: editForm.name.trim(),
-        category: editForm.category.trim() || null,
-        habit_type: editForm.habit_type,
-        days_of_week: editForm.days_of_week.length ? editForm.days_of_week : null,
-      })
-      .eq('id', habitId)
+    await supabase.from('habits').update(formToPayload(editForm)).eq('id', habitId)
     setEditingId(null)
     load()
   }
@@ -191,6 +222,56 @@ export default function Habits() {
     )
   }
 
+  function SchedulePicker({ f, setF }) {
+    return (
+      <div className="space-y-2">
+        <div className="flex gap-1 text-xs">
+          {[
+            { value: 'daily', label: 'Todo dia' },
+            { value: 'days', label: 'Dias específicos' },
+            { value: 'weekly', label: 'X vezes/semana' },
+          ].map((opt) => (
+            <button
+              type="button"
+              key={opt.value}
+              onClick={() => setF({ ...f, scheduleMode: opt.value })}
+              className={`px-3 py-1.5 rounded-full border ${
+                f.scheduleMode === opt.value
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'border-slate-300 text-slate-500'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {f.scheduleMode === 'days' && (
+          <DaysPicker value={f.days_of_week} onChange={(v) => setF({ ...f, days_of_week: v })} />
+        )}
+        {f.scheduleMode === 'weekly' && (
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <button
+              type="button"
+              onClick={() => setF({ ...f, times_per_week: Math.max(1, f.times_per_week - 1) })}
+              className="w-7 h-7 rounded-full border border-slate-300 hover:border-slate-400"
+            >
+              −
+            </button>
+            <span className="w-16 text-center">{f.times_per_week}x / semana</span>
+            <button
+              type="button"
+              onClick={() => setF({ ...f, times_per_week: Math.min(7, f.times_per_week + 1) })}
+              className="w-7 h-7 rounded-full border border-slate-300 hover:border-slate-400"
+            >
+              +
+            </button>
+            <span className="text-slate-400">sem dias fixos — marque quando fizer</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   function CategoryChips({ value, onChange }) {
     return (
       <div className="flex flex-wrap gap-1">
@@ -211,6 +292,7 @@ export default function Habits() {
   }
 
   function daysLabel(habit) {
+    if (isFlexible(habit)) return `${habit.times_per_week}x/semana`
     if (!habit.days_of_week || habit.days_of_week.length === 0) return 'todo dia'
     return habit.days_of_week.map((d) => WEEKDAYS[d].label).join(' ')
   }
@@ -262,49 +344,37 @@ export default function Habits() {
             />
           </div>
           <CategoryChips value={editForm.category} onChange={(c) => setEditForm({ ...editForm, category: c })} />
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex gap-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setEditForm({ ...editForm, habit_type: 'build' })}
-                className={`px-3 py-1.5 rounded-full border ${
-                  editForm.habit_type === 'build'
-                    ? 'bg-emerald-500 text-white border-emerald-500'
-                    : 'border-slate-300 text-slate-500'
-                }`}
-              >
-                Fazer
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditForm({ ...editForm, habit_type: 'avoid' })}
-                className={`px-3 py-1.5 rounded-full border ${
-                  editForm.habit_type === 'avoid'
-                    ? 'bg-red-500 text-white border-red-500'
-                    : 'border-slate-300 text-slate-500'
-                }`}
-              >
-                Evitar
-              </button>
-            </div>
-            <DaysPicker
-              value={editForm.days_of_week}
-              onChange={(v) => setEditForm({ ...editForm, days_of_week: v })}
-            />
-            <div className="ml-auto flex gap-2">
-              <button
-                onClick={() => setEditingId(null)}
-                className="text-xs text-slate-500 px-3 py-2 hover:text-slate-800"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => saveEdit(habit.id)}
-                className="rounded-lg bg-slate-900 text-white px-4 py-2 text-xs font-medium hover:bg-slate-800"
-              >
-                Salvar
-              </button>
-            </div>
+          <div className="flex gap-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setEditForm({ ...editForm, habit_type: 'build' })}
+              className={`px-3 py-1.5 rounded-full border ${
+                editForm.habit_type === 'build' ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
+              }`}
+            >
+              Fazer
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditForm({ ...editForm, habit_type: 'avoid' })}
+              className={`px-3 py-1.5 rounded-full border ${
+                editForm.habit_type === 'avoid' ? 'bg-red-500 text-white border-red-500' : 'border-slate-300 text-slate-500'
+              }`}
+            >
+              Evitar
+            </button>
+          </div>
+          <SchedulePicker f={editForm} setF={setEditForm} />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setEditingId(null)} className="text-xs text-slate-500 px-3 py-2 hover:text-slate-800">
+              Cancelar
+            </button>
+            <button
+              onClick={() => saveEdit(habit.id)}
+              className="rounded-lg bg-slate-900 text-white px-4 py-2 text-xs font-medium hover:bg-slate-800"
+            >
+              Salvar
+            </button>
           </div>
         </li>
       )
@@ -343,7 +413,13 @@ export default function Habits() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500">🔥 {streaks[habit.id] ?? 0}d</span>
+          {isFlexible(habit) ? (
+            <span className="text-xs text-slate-500">
+              {weeklyProgress[habit.id] ?? 0}/{habit.times_per_week} esta semana
+            </span>
+          ) : (
+            <span className="text-xs text-slate-500">🔥 {streaks[habit.id] ?? 0}d</span>
+          )}
           <button onClick={() => startEdit(habit)} className="text-xs text-slate-400 hover:text-slate-800">
             editar
           </button>
@@ -367,7 +443,7 @@ export default function Habits() {
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="Nome (ex: Meditar 10min, Não abrir Instagram antes das 10h)"
+            placeholder="Nome (ex: Meditar 10min, Academia)"
             className="flex-1 min-w-[220px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
           />
           <input
@@ -378,36 +454,30 @@ export default function Habits() {
           />
         </div>
         <CategoryChips value={form.category} onChange={(c) => setForm({ ...form, category: c })} />
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex gap-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setForm({ ...form, habit_type: 'build' })}
-              className={`px-3 py-1.5 rounded-full border ${
-                form.habit_type === 'build'
-                  ? 'bg-emerald-500 text-white border-emerald-500'
-                  : 'border-slate-300 text-slate-500'
-              }`}
-            >
-              Fazer
-            </button>
-            <button
-              type="button"
-              onClick={() => setForm({ ...form, habit_type: 'avoid' })}
-              className={`px-3 py-1.5 rounded-full border ${
-                form.habit_type === 'avoid'
-                  ? 'bg-red-500 text-white border-red-500'
-                  : 'border-slate-300 text-slate-500'
-              }`}
-            >
-              Evitar
-            </button>
-          </div>
-          <DaysPicker value={form.days_of_week} onChange={(v) => setForm({ ...form, days_of_week: v })} />
-          <button className="ml-auto rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
-            Adicionar
+        <div className="flex gap-1 text-xs">
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, habit_type: 'build' })}
+            className={`px-3 py-1.5 rounded-full border ${
+              form.habit_type === 'build' ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
+            }`}
+          >
+            Fazer
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, habit_type: 'avoid' })}
+            className={`px-3 py-1.5 rounded-full border ${
+              form.habit_type === 'avoid' ? 'bg-red-500 text-white border-red-500' : 'border-slate-300 text-slate-500'
+            }`}
+          >
+            Evitar
           </button>
         </div>
+        <SchedulePicker f={form} setF={setForm} />
+        <button className="w-full rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          Adicionar
+        </button>
       </form>
 
       {categories.length > 2 && (
