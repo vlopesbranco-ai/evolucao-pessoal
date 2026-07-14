@@ -7,6 +7,7 @@ import Habits from './pages/Habits'
 import Marriage from './pages/Marriage'
 import CalendarPage from './pages/Calendar'
 import Content from './pages/Content'
+import Watchlist from './pages/Watchlist'
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
@@ -37,6 +38,7 @@ function AppRoutes() {
         <Route path="casamento" element={<Marriage />} />
         <Route path="calendario" element={<CalendarPage />} />
         <Route path="conteudo" element={<Content />} />
+        <Route path="quero-ver" element={<Watchlist />} />
         <Route path="dopamina" element={<Navigate to="/habitos" replace />} />
       </Route>
     </Routes>
