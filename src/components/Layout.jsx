@@ -7,7 +7,6 @@ const links = [
   { to: '/casamento', label: 'Casamento' },
   { to: '/calendario', label: 'Calendário' },
   { to: '/conteudo', label: 'Conteúdo' },
-  { to: '/quero-ver', label: 'Quero ver' },
 ]
 
 export default function Layout() {

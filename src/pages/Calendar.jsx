@@ -33,6 +33,7 @@ export default function CalendarPage() {
   const [importantDates, setImportantDates] = useState([])
   const [events, setEvents] = useState([])
   const [intimacyLogs, setIntimacyLogs] = useState([])
+  const [podcasts, setPodcasts] = useState([])
   const [loading, setLoading] = useState(true)
 
   const [taskTitle, setTaskTitle] = useState('')
@@ -45,16 +46,18 @@ export default function CalendarPage() {
 
   async function load() {
     setLoading(true)
-    const [{ data: taskData }, { data: dateData }, { data: eventData }, { data: intimacyData }] = await Promise.all([
+    const [{ data: taskData }, { data: dateData }, { data: eventData }, { data: intimacyData }, { data: podcastData }] = await Promise.all([
       supabase.from('tasks').select('*').order('due_date', { ascending: true }),
       supabase.from('important_dates').select('*'),
       supabase.from('calendar_events').select('*').order('start_date', { ascending: false }),
       supabase.from('intimacy_logs').select('id, occurred_at').limit(1000),
+      supabase.from('watchlist_items').select('id, title, release_weekday').eq('category', 'podcast'),
     ])
     setTasks(taskData ?? [])
     setImportantDates(dateData ?? [])
     setEvents(eventData ?? [])
     setIntimacyLogs(intimacyData ?? [])
+    setPodcasts(podcastData ?? [])
     setLoading(false)
   }
 
@@ -133,6 +136,11 @@ export default function CalendarPage() {
     return intimacyLogs.filter((i) => i.occurred_at === dateStr)
   }
 
+  function podcastsOn(dateStr) {
+    const weekday = new Date(dateStr + 'T00:00:00').getDay()
+    return podcasts.filter((p) => p.release_weekday === weekday)
+  }
+
   const grid = useMemo(() => {
     const firstOfMonth = monthCursor
     const gridStart = new Date(firstOfMonth)
@@ -159,6 +167,7 @@ export default function CalendarPage() {
   const selectedImportant = importantDatesOn(selectedDate)
   const selectedEvents = eventsOn(selectedDate)
   const selectedIntimacy = intimacyOn(selectedDate)
+  const selectedPodcasts = podcastsOn(selectedDate)
 
   return (
     <div className="space-y-6">
@@ -203,6 +212,7 @@ export default function CalendarPage() {
               const dayImportant = importantDatesOn(dateStr)
               const dayEvents = eventsOn(dateStr)
               const dayIntimacy = intimacyOn(dateStr)
+              const dayPodcasts = podcastsOn(dateStr)
               const eventCategoriesToday = [...new Set(dayEvents.map((e) => e.category))]
 
               return (
@@ -236,6 +246,9 @@ export default function CalendarPage() {
                     {dayIntimacy.length > 0 && (
                       <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-red-600'}`} />
                     )}
+                    {dayPodcasts.length > 0 && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}`} />
+                    )}
                   </span>
                 </button>
               )
@@ -246,6 +259,7 @@ export default function CalendarPage() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500" /> Tarefa</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Data importante</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-600" /> Intimidade</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Podcast</span>
             {EVENT_CATEGORIES.map((c) => (
               <span key={c.value} className="flex items-center gap-1">
                 <span className={`w-2 h-2 rounded-full ${c.dot}`} /> {c.label}
@@ -275,6 +289,21 @@ export default function CalendarPage() {
               >
                 ❤️ Atividade íntima registrada (ver em Casamento)
               </Link>
+            )}
+
+            {selectedPodcasts.length > 0 && (
+              <ul className="space-y-1">
+                {selectedPodcasts.map((p) => (
+                  <li key={p.id}>
+                    <Link
+                      to="/conteudo"
+                      className="block text-xs text-teal-700 bg-teal-50 rounded-lg px-2 py-1 hover:bg-teal-100"
+                    >
+                      🎙️ {p.title} lança hoje
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
 
             {selectedEvents.length > 0 && (
