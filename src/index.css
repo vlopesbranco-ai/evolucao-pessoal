@@ -23,3 +23,23 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
 }
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease, transform 100ms ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.safe-scroll::-webkit-scrollbar {
+  display: none;
+}
+.safe-scroll {
+  scrollbar-width: none;
+}
