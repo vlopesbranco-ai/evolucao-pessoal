@@ -16,14 +16,12 @@ export default function Layout() {
   const location = useLocation()
   const mainRef = useRef(null)
 
-  // reseta a rolagem ao trocar de página — sem isso a tela nova abre
-  // no meio do scroll da anterior, dando sensação de "não fixo"
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
   }, [location.pathname])
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col overflow-hidden bg-slate-50">
       <header
         className="shrink-0 bg-white/95 backdrop-blur border-b border-slate-200"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
@@ -43,16 +41,12 @@ export default function Layout() {
         </div>
       </header>
 
-      <main
-        ref={mainRef}
-        className="safe-scroll flex-1 max-w-4xl w-full mx-auto px-4 py-5"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
-      >
+      <main ref={mainRef} className="safe-scroll flex-1 min-h-0 max-w-4xl w-full mx-auto px-4 py-5">
         <Outlet />
       </main>
 
       <nav
-        className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-200 z-20"
+        className="shrink-0 bg-white/95 backdrop-blur border-t border-slate-200"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-4xl mx-auto grid grid-cols-5">
