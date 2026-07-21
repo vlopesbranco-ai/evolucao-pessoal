@@ -37,3 +37,14 @@ button:active {
 .safe-scroll {
   scrollbar-width: none;
 }
+
+/* iOS Safari auto-zooma a tela ao focar um input/select/textarea com
+   font-size menor que 16px, o que causa a sensação de tela "flutuando"
+   quando o teclado abre. Forçamos 16px em telas pequenas pra evitar isso. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

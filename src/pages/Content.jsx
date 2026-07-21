@@ -3,19 +3,48 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { todayStr } from '../lib/date'
 
+// Categorias selecionáveis no formulário (reduzidas a pedido)
 const CONTENT_TYPES = [
   { value: 'filme', label: 'Filme', emoji: '🎬' },
   { value: 'serie', label: 'Série', emoji: '📺' },
+  { value: 'livro', label: 'Livro', emoji: '📚' },
+  { value: 'audiobook', label: 'Audiobook', emoji: '🎧' },
+]
+
+// Mantém o mapeamento de categorias antigas só pra exibir itens já cadastrados antes da mudança
+const LEGACY_CONTENT_TYPES = [
   { value: 'documentario', label: 'Documentário', emoji: '🎥' },
   { value: 'video', label: 'Vídeo', emoji: '▶️' },
-  { value: 'audiobook', label: 'Audiobook', emoji: '🎧' },
-  { value: 'livro', label: 'Livro', emoji: '📚' },
   { value: 'rede_social', label: 'Rede social', emoji: '📱' },
   { value: 'artigo', label: 'Artigo', emoji: '📰' },
   { value: 'curso', label: 'Curso', emoji: '🎓' },
   { value: 'noticias', label: 'Notícias', emoji: '🗞️' },
   { value: 'outro', label: 'Outro', emoji: '📌' },
 ]
+
+const ALL_CONTENT_TYPES = [...CONTENT_TYPES, ...LEGACY_CONTENT_TYPES]
+
+const GENRES = [
+  { value: 'acao', label: 'Ação' },
+  { value: 'aventura', label: 'Aventura' },
+  { value: 'comedia', label: 'Comédia' },
+  { value: 'drama', label: 'Drama' },
+  { value: 'terror', label: 'Terror' },
+  { value: 'suspense', label: 'Suspense' },
+  { value: 'romance', label: 'Romance' },
+  { value: 'ficcao_cientifica', label: 'Ficção científica' },
+  { value: 'fantasia', label: 'Fantasia' },
+  { value: 'documentario', label: 'Documentário' },
+  { value: 'animacao', label: 'Animação' },
+  { value: 'familia', label: 'Família' },
+  { value: 'crime', label: 'Crime/Policial' },
+  { value: 'biografia', label: 'Biografia' },
+  { value: 'outro', label: 'Outro' },
+]
+
+function genreLabel(value) {
+  return GENRES.find((g) => g.value === value)?.label ?? null
+}
 
 const WEEKDAYS = [
   { value: 0, label: 'Domingo' },
@@ -28,7 +57,7 @@ const WEEKDAYS = [
 ]
 
 function typeInfo(value) {
-  return CONTENT_TYPES.find((t) => t.value === value) ?? CONTENT_TYPES[CONTENT_TYPES.length - 1]
+  return ALL_CONTENT_TYPES.find((t) => t.value === value) ?? { value, label: 'Outro', emoji: '📌' }
 }
 
 export default function Content() {
@@ -41,6 +70,7 @@ export default function Content() {
 
   const [queueTitle, setQueueTitle] = useState('')
   const [queueCategory, setQueueCategory] = useState('filme')
+  const [queueGenre, setQueueGenre] = useState('')
   const [queueNote, setQueueNote] = useState('')
 
   const [podcastTitle, setPodcastTitle] = useState('')
@@ -65,9 +95,11 @@ export default function Content() {
       user_id: user.id,
       title: queueTitle.trim(),
       category: queueCategory,
+      genre: queueGenre || null,
       note: queueNote.trim() || null,
     })
     setQueueTitle('')
+    setQueueGenre('')
     setQueueNote('')
     load()
   }
@@ -141,19 +173,30 @@ export default function Content() {
               className="w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
-          <div className="flex flex-wrap gap-1">
-            {CONTENT_TYPES.map((c) => (
-              <button
-                type="button"
-                key={c.value}
-                onClick={() => setQueueCategory(c.value)}
-                className={`px-2.5 py-1 rounded-full text-xs border ${
-                  queueCategory === c.value ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-300 text-slate-500'
-                }`}
-              >
-                {c.emoji} {c.label}
-              </button>
-            ))}
+          <div className="flex gap-2">
+            <select
+              value={queueCategory}
+              onChange={(e) => setQueueCategory(e.target.value)}
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+            >
+              {CONTENT_TYPES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.emoji} {c.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={queueGenre}
+              onChange={(e) => setQueueGenre(e.target.value)}
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+            >
+              <option value="">Sem gênero</option>
+              {GENRES.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
           </div>
           <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
             Adicionar à fila
@@ -175,7 +218,8 @@ export default function Content() {
 
         {suggestion && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-sm text-indigo-700">
-            {typeInfo(suggestion.category).emoji} Que tal: <span className="font-medium">{suggestion.title}</span>?
+            {typeInfo(suggestion.category).emoji} Que tal: <span className="font-medium">{suggestion.title}</span>
+            {suggestion.genre && ` (${genreLabel(suggestion.genre)})`}?
           </div>
         )}
 
@@ -199,6 +243,7 @@ export default function Content() {
                   <div>
                     <p className={`text-sm font-medium ${item.watched ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                       {typeInfo(item.category).emoji} {item.title}
+                      {item.genre && <span className="text-xs font-normal text-slate-400"> · {genreLabel(item.genre)}</span>}
                     </p>
                     {item.note && <p className="text-xs text-slate-400">{item.note}</p>}
                   </div>
