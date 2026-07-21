@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { todayStr, localDateStr } from '../lib/date'
 import { EVENT_CATEGORIES, categoryInfo } from '../lib/eventCategories'
+import { periodRanges, computeCycleInsights } from '../lib/cycle'
 
 const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const MONTH_LABELS = [
@@ -34,6 +35,7 @@ export default function CalendarPage() {
   const [events, setEvents] = useState([])
   const [intimacyLogs, setIntimacyLogs] = useState([])
   const [podcasts, setPodcasts] = useState([])
+  const [cycleLogs, setCycleLogs] = useState([])
   const [loading, setLoading] = useState(true)
 
   const [taskTitle, setTaskTitle] = useState('')
@@ -46,18 +48,20 @@ export default function CalendarPage() {
 
   async function load() {
     setLoading(true)
-    const [{ data: taskData }, { data: dateData }, { data: eventData }, { data: intimacyData }, { data: podcastData }] = await Promise.all([
+    const [{ data: taskData }, { data: dateData }, { data: eventData }, { data: intimacyData }, { data: podcastData }, { data: cycleData }] = await Promise.all([
       supabase.from('tasks').select('*').order('due_date', { ascending: true }),
       supabase.from('important_dates').select('*'),
       supabase.from('calendar_events').select('*').order('start_date', { ascending: false }),
       supabase.from('intimacy_logs').select('id, occurred_at').limit(1000),
       supabase.from('watchlist_items').select('id, title, release_weekday').eq('category', 'podcast'),
+      supabase.from('cycle_logs').select('cycle_start, period_length').order('cycle_start', { ascending: false }).limit(24),
     ])
     setTasks(taskData ?? [])
     setImportantDates(dateData ?? [])
     setEvents(eventData ?? [])
     setIntimacyLogs(intimacyData ?? [])
     setPodcasts(podcastData ?? [])
+    setCycleLogs(cycleData ?? [])
     setLoading(false)
   }
 
@@ -141,6 +145,23 @@ export default function CalendarPage() {
     return podcasts.filter((p) => p.release_weekday === weekday)
   }
 
+  const cycleRanges = useMemo(() => periodRanges(cycleLogs), [cycleLogs])
+  const cycleInsights = useMemo(() => computeCycleInsights(cycleLogs), [cycleLogs])
+
+  function inRange(dateStr, range) {
+    return range && dateStr >= range.start && dateStr <= range.end
+  }
+
+  function periodOn(dateStr) {
+    if (cycleRanges.some((r) => inRange(dateStr, r))) return true
+    if (cycleInsights && inRange(dateStr, cycleInsights.predictedNext)) return true
+    return false
+  }
+
+  function fertileOn(dateStr) {
+    return !!(cycleInsights && inRange(dateStr, cycleInsights.fertileWindow))
+  }
+
   const grid = useMemo(() => {
     const firstOfMonth = monthCursor
     const gridStart = new Date(firstOfMonth)
@@ -168,6 +189,8 @@ export default function CalendarPage() {
   const selectedEvents = eventsOn(selectedDate)
   const selectedIntimacy = intimacyOn(selectedDate)
   const selectedPodcasts = podcastsOn(selectedDate)
+  const selectedPeriod = periodOn(selectedDate)
+  const selectedFertile = fertileOn(selectedDate)
 
   return (
     <div className="space-y-6">
@@ -213,6 +236,8 @@ export default function CalendarPage() {
               const dayEvents = eventsOn(dateStr)
               const dayIntimacy = intimacyOn(dateStr)
               const dayPodcasts = podcastsOn(dateStr)
+              const dayPeriod = periodOn(dateStr)
+              const dayFertile = fertileOn(dateStr)
               const eventCategoriesToday = [...new Set(dayEvents.map((e) => e.category))]
 
               return (
@@ -249,6 +274,12 @@ export default function CalendarPage() {
                     {dayPodcasts.length > 0 && (
                       <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}`} />
                     )}
+                    {dayPeriod && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-pink-500'}`} />
+                    )}
+                    {dayFertile && (
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-purple-500'}`} />
+                    )}
                   </span>
                 </button>
               )
@@ -260,6 +291,8 @@ export default function CalendarPage() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Data importante</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-600" /> Intimidade</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Podcast</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-pink-500" /> Período</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500" /> Janela fértil</span>
             {EVENT_CATEGORIES.map((c) => (
               <span key={c.value} className="flex items-center gap-1">
                 <span className={`w-2 h-2 rounded-full ${c.dot}`} /> {c.label}
@@ -289,6 +322,14 @@ export default function CalendarPage() {
               >
                 ❤️ Atividade íntima registrada (ver em Casamento)
               </Link>
+            )}
+
+            {selectedPeriod && (
+              <p className="text-xs text-pink-700 bg-pink-50 rounded-lg px-2 py-1">🩸 Período (estimado ou registrado)</p>
+            )}
+
+            {selectedFertile && (
+              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">🌸 Janela fértil estimada</p>
             )}
 
             {selectedPodcasts.length > 0 && (

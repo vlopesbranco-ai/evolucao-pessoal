@@ -14,6 +14,7 @@ import {
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import Heatmap from '../components/Heatmap'
+import { computeCycleInsights } from '../lib/cycle'
 
 const MOODS = [
   { value: 1, emoji: '😞', label: 'Muito mal' },
@@ -67,6 +68,7 @@ export default function Marriage() {
   const [usedProtection, setUsedProtection] = useState(true)
 
   const [cycleDate, setCycleDate] = useState(todayStr())
+  const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
   const [cycleSymptoms, setCycleSymptoms] = useState('')
   const [cycleNote, setCycleNote] = useState('')
 
@@ -129,12 +131,14 @@ export default function Marriage() {
     await supabase.from('cycle_logs').insert({
       user_id: user.id,
       cycle_start: cycleDate,
+      period_length: cyclePeriodLength,
       symptoms: cycleSymptoms.trim() || null,
       note: cycleNote.trim() || null,
     })
     setCycleSymptoms('')
     setCycleNote('')
     setCycleDate(todayStr())
+    setCyclePeriodLength(5)
     load()
   }
 
@@ -205,32 +209,7 @@ export default function Marriage() {
   }
 
   // ---- Cálculos: ciclo ----
-  let avgCycleLength = null
-  let predictedNext = null
-  let fertileWindow = null
-  if (cycleLogs.length >= 2) {
-    const sorted = [...cycleLogs].sort((a, b) => new Date(a.cycle_start) - new Date(b.cycle_start))
-    const diffs = []
-    for (let i = 1; i < sorted.length; i++) {
-      diffs.push(daysBetween(sorted[i - 1].cycle_start, sorted[i].cycle_start))
-    }
-    avgCycleLength = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length)
-    const lastStart = sorted[sorted.length - 1].cycle_start
-    const next = new Date(lastStart + 'T00:00:00')
-    next.setDate(next.getDate() + avgCycleLength)
-    predictedNext = localDateStr(next)
-
-    const ovulation = new Date(next)
-    ovulation.setDate(ovulation.getDate() - 14)
-    const fertileStart = new Date(ovulation)
-    fertileStart.setDate(fertileStart.getDate() - 5)
-    const fertileEnd = new Date(ovulation)
-    fertileEnd.setDate(fertileEnd.getDate() + 1)
-    fertileWindow = {
-      start: localDateStr(fertileStart),
-      end: localDateStr(fertileEnd),
-    }
-  }
+  const cycleInsights = useMemo(() => computeCycleInsights(cycleLogs), [cycleLogs])
 
   // ---- Cálculos: estatísticas de intimidade ----
   const stats = useMemo(() => {
@@ -379,19 +358,20 @@ export default function Marriage() {
                 </div>
               )}
 
-              {cycleLogs.length >= 2 && (
+              {cycleInsights && (
                 <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1">
                   <p className="text-xs text-slate-400">Estimativa de ciclo</p>
                   <p className="text-sm text-slate-700">
-                    Duração média: <span className="font-semibold">{avgCycleLength} dias</span> · Próximo ciclo:{' '}
-                    <span className="font-semibold">{fmt(predictedNext)}</span>
+                    Duração média: <span className="font-semibold">{cycleInsights.avgCycleLength} dias</span> · Próximo
+                    período: <span className="font-semibold">{fmt(cycleInsights.predictedNext.start)} a {fmt(cycleInsights.predictedNext.end)}</span>
                   </p>
                   <p className="text-sm text-slate-700">
                     Janela fértil estimada:{' '}
                     <span className="font-semibold">
-                      {fmt(fertileWindow.start)} a {fmt(fertileWindow.end)}
+                      {fmt(cycleInsights.fertileWindow.start)} a {fmt(cycleInsights.fertileWindow.end)}
                     </span>
                   </p>
+                  <p className="text-xs text-slate-400 pt-1">Veja as faixas completas na Agenda.</p>
                 </div>
               )}
             </>
@@ -418,6 +398,18 @@ export default function Marriage() {
                   className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 />
               </div>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <label htmlFor="periodLength">Duração do período (dias)</label>
+                <input
+                  id="periodLength"
+                  type="number"
+                  min={1}
+                  max={14}
+                  value={cyclePeriodLength}
+                  onChange={(e) => setCyclePeriodLength(Number(e.target.value) || 5)}
+                  className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                />
+              </div>
               <input
                 value={cycleNote}
                 onChange={(e) => setCycleNote(e.target.value)}
@@ -440,7 +432,7 @@ export default function Marriage() {
                     className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
                   >
                     <div>
-                      <p className="font-medium">{fmt(c.cycle_start)}</p>
+                      <p className="font-medium">{fmt(c.cycle_start)} · {c.period_length ?? 5}d de período</p>
                       {c.symptoms && <p className="text-slate-400">{c.symptoms}</p>}
                       {c.note && <p className="text-slate-400">{c.note}</p>}
                     </div>
