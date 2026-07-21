@@ -14,7 +14,7 @@ import {
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import Heatmap from '../components/Heatmap'
-import { computeCycleInsights } from '../lib/cycle'
+import { computeCycleInsights, periodRanges } from '../lib/cycle'
 
 const MOODS = [
   { value: 1, emoji: '😞', label: 'Muito mal' },
@@ -47,15 +47,27 @@ function fmt(dateStr) {
 
 const TABS = [
   { key: 'visao', label: 'Visão geral' },
+  { key: 'calendario', label: 'Calendário' },
   { key: 'registros', label: 'Ciclo & Intimidade' },
   { key: 'humor', label: 'Humor' },
   { key: 'datas', label: 'Datas & Anotações' },
+]
+
+const CAL_WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+const CAL_MONTH_LABELS = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
 export default function Marriage() {
   const { user } = useAuth()
   const [tab, setTab] = useState('visao')
   const contentRef = useRef(null)
+  const [calMonthCursor, setCalMonthCursor] = useState(() => {
+    const d = new Date()
+    return new Date(d.getFullYear(), d.getMonth(), 1)
+  })
+  const [calSelectedDate, setCalSelectedDate] = useState(todayStr())
 
   useEffect(() => {
     contentRef.current?.scrollTo(0, 0)
@@ -215,6 +227,37 @@ export default function Marriage() {
 
   // ---- Cálculos: ciclo ----
   const cycleInsights = useMemo(() => computeCycleInsights(cycleLogs), [cycleLogs])
+  const cycleRanges = useMemo(() => periodRanges(cycleLogs), [cycleLogs])
+
+  function calInRange(dateStr, range) {
+    return range && dateStr >= range.start && dateStr <= range.end
+  }
+
+  function calPeriodOn(dateStr) {
+    if (cycleRanges.some((r) => calInRange(dateStr, r))) return 'registrado'
+    if (cycleInsights && calInRange(dateStr, cycleInsights.predictedNext)) return 'previsto'
+    return null
+  }
+
+  function calFertileOn(dateStr) {
+    return !!(cycleInsights && calInRange(dateStr, cycleInsights.fertileWindow))
+  }
+
+  function calIntimacyOn(dateStr) {
+    return intimacyLogs.some((i) => i.occurred_at === dateStr)
+  }
+
+  const calGrid = useMemo(() => {
+    const gridStart = new Date(calMonthCursor)
+    gridStart.setDate(gridStart.getDate() - gridStart.getDay())
+    const cells = []
+    const cursor = new Date(gridStart)
+    for (let i = 0; i < 42; i++) {
+      cells.push(new Date(cursor))
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    return cells
+  }, [calMonthCursor])
 
   // ---- Cálculos: estatísticas de intimidade ----
   const stats = useMemo(() => {
@@ -383,6 +426,110 @@ export default function Marriage() {
                 </div>
               )}
             </>
+          )}
+        </div>
+      )}
+
+      {tab === 'calendario' && (
+        <div className="space-y-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={() => setCalMonthCursor(new Date(calMonthCursor.getFullYear(), calMonthCursor.getMonth() - 1, 1))}
+                className="text-slate-400 hover:text-slate-800 px-2"
+              >
+                ‹
+              </button>
+              <p className="text-sm font-medium text-slate-800">
+                {CAL_MONTH_LABELS[calMonthCursor.getMonth()]} {calMonthCursor.getFullYear()}
+              </p>
+              <button
+                onClick={() => setCalMonthCursor(new Date(calMonthCursor.getFullYear(), calMonthCursor.getMonth() + 1, 1))}
+                className="text-slate-400 hover:text-slate-800 px-2"
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400 mb-1">
+              {CAL_WEEKDAY_LABELS.map((l, i) => (
+                <div key={i}>{l}</div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {calGrid.map((date) => {
+                const dateStr = localDateStr(date)
+                const inMonth = date.getMonth() === calMonthCursor.getMonth()
+                const isToday = dateStr === todayStr()
+                const isSelected = dateStr === calSelectedDate
+                const periodStatus = calPeriodOn(dateStr)
+                const fertile = calFertileOn(dateStr)
+                const intimacy = calIntimacyOn(dateStr)
+
+                let bg = 'bg-transparent'
+                let textColor = inMonth ? 'text-slate-700' : 'text-slate-300'
+                if (periodStatus === 'registrado') {
+                  bg = 'bg-pink-500'
+                  textColor = 'text-white'
+                } else if (periodStatus === 'previsto') {
+                  bg = 'bg-pink-100'
+                  textColor = 'text-pink-700'
+                } else if (fertile) {
+                  bg = 'bg-purple-100'
+                  textColor = 'text-purple-700'
+                }
+
+                return (
+                  <button
+                    key={dateStr}
+                    onClick={() => setCalSelectedDate(dateStr)}
+                    className={`relative aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${bg} ${textColor} ${
+                      isSelected
+                        ? 'border-slate-900 ring-2 ring-slate-900'
+                        : isToday
+                        ? 'border-slate-500'
+                        : 'border-transparent'
+                    }`}
+                  >
+                    <span>{date.getDate()}</span>
+                    {intimacy && <span className="absolute bottom-0.5 text-[10px] leading-none">❤️</span>}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex flex-wrap gap-3 mt-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-500" /> Período registrado</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 border border-pink-300" /> Período previsto</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-300" /> Janela fértil</span>
+              <span className="flex items-center gap-1">❤️ Intimidade</span>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+            <p className="text-sm font-medium text-slate-800">{fmt(calSelectedDate)}</p>
+            {calPeriodOn(calSelectedDate) === 'registrado' && (
+              <p className="text-xs text-pink-700 bg-pink-50 rounded-lg px-2 py-1">🩸 Dia de período registrado</p>
+            )}
+            {calPeriodOn(calSelectedDate) === 'previsto' && (
+              <p className="text-xs text-pink-700 bg-pink-50 rounded-lg px-2 py-1">🩸 Dia de período previsto (estimativa)</p>
+            )}
+            {calFertileOn(calSelectedDate) && (
+              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">🌸 Janela fértil estimada</p>
+            )}
+            {calIntimacyOn(calSelectedDate) && (
+              <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1">❤️ Atividade íntima registrada</p>
+            )}
+            {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
+              <p className="text-xs text-slate-400">Nenhum registro nesse dia.</p>
+            )}
+          </div>
+
+          {!cycleInsights && (
+            <p className="text-xs text-slate-400">
+              Registre pelo menos 2 ciclos em "Ciclo & Intimidade" pra ver a previsão de período e janela fértil aqui.
+            </p>
           )}
         </div>
       )}
