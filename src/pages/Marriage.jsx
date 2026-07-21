@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { todayStr, localDateStr } from '../lib/date'
 import {
   BarChart,
@@ -55,6 +55,11 @@ const TABS = [
 export default function Marriage() {
   const { user } = useAuth()
   const [tab, setTab] = useState('visao')
+  const contentRef = useRef(null)
+
+  useEffect(() => {
+    contentRef.current?.scrollTo(0, 0)
+  }, [tab])
 
   const [intimacyLogs, setIntimacyLogs] = useState([])
   const [cycleLogs, setCycleLogs] = useState([])
@@ -282,28 +287,31 @@ export default function Marriage() {
   }, [dates])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold text-slate-900">Casamento</h1>
-        <p className="text-sm text-slate-500">Registro manual e privado — só você alimenta esses dados.</p>
+    <div className="h-full flex flex-col">
+      <div className="shrink-0 space-y-3">
+        <div>
+          <h1 className="text-lg font-semibold text-slate-900">Casamento</h1>
+          <p className="text-sm text-slate-500">Registro manual e privado — só você alimenta esses dados.</p>
+        </div>
+
+        <div className="-mx-4 px-4 bg-slate-50 flex gap-1 border-b border-slate-200 text-sm overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-3 py-2 border-b-2 whitespace-nowrap ${
+                tab === t.key
+                  ? 'border-slate-900 text-slate-900 font-medium'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="sticky top-0 z-10 -mx-4 px-4 bg-slate-50 flex gap-1 border-b border-slate-200 text-sm overflow-x-auto">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-3 py-2 border-b-2 whitespace-nowrap ${
-              tab === t.key
-                ? 'border-slate-900 text-slate-900 font-medium'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
+      <div ref={contentRef} className="flex-1 min-h-0 overflow-y-auto safe-scroll pt-4 space-y-6">
       {tab === 'visao' && (
         <div className="space-y-6">
           {loading ? (
@@ -704,6 +712,7 @@ export default function Marriage() {
           </section>
         </div>
       )}
+      </div>
     </div>
   )
 }
