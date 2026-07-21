@@ -330,7 +330,7 @@ export default function Marriage() {
   }, [dates])
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-y-hidden">
       <div className="shrink-0 space-y-3">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Casamento</h1>
@@ -644,7 +644,7 @@ export default function Marriage() {
             ) : intimacyLogs.length === 0 ? (
               <p className="text-sm text-slate-400">Nenhum registro ainda.</p>
             ) : (
-              <ul className="space-y-1 max-h-96 overflow-y-auto">
+              <ul className="space-y-1 max-h-96 overflow-y-auto overscroll-contain">
                 {intimacyLogs.slice(0, 30).map((i) => (
                   <li
                     key={i.id}
@@ -839,7 +839,7 @@ export default function Marriage() {
             {notes.length === 0 ? (
               <p className="text-sm text-slate-400">Nenhuma anotação ainda.</p>
             ) : (
-              <ul className="space-y-1 max-h-96 overflow-y-auto">
+              <ul className="space-y-1 max-h-96 overflow-y-auto overscroll-contain">
                 {notes.map((n) => (
                   <li
                     key={n.id}
