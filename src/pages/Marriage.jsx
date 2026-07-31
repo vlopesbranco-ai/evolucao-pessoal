@@ -88,6 +88,8 @@ export default function Marriage() {
   const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
   const [cycleSymptoms, setCycleSymptoms] = useState('')
   const [cycleNote, setCycleNote] = useState('')
+  const [editingCycleEndId, setEditingCycleEndId] = useState(null)
+  const [cycleEndValue, setCycleEndValue] = useState('')
 
   const [moodDate, setMoodDate] = useState(todayStr())
   const [moodValue, setMoodValue] = useState(3)
@@ -161,6 +163,14 @@ export default function Marriage() {
 
   async function removeCycle(id) {
     await supabase.from('cycle_logs').delete().eq('id', id)
+    load()
+  }
+
+  async function saveCycleEnd(id) {
+    if (!cycleEndValue) return
+    await supabase.from('cycle_logs').update({ cycle_end: cycleEndValue }).eq('id', id)
+    setEditingCycleEndId(null)
+    setCycleEndValue('')
     load()
   }
 
@@ -581,21 +591,79 @@ export default function Marriage() {
               <p className="text-sm text-slate-400">Nenhum registro ainda.</p>
             ) : (
               <ul className="space-y-1">
-                {cycleLogs.map((c) => (
-                  <li
-                    key={c.id}
-                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
-                  >
-                    <div>
-                      <p className="font-medium">{fmt(c.cycle_start)} · {c.period_length ?? 5}d de período</p>
-                      {c.symptoms && <p className="text-slate-400">{c.symptoms}</p>}
-                      {c.note && <p className="text-slate-400">{c.note}</p>}
-                    </div>
-                    <button onClick={() => removeCycle(c.id)} className="text-slate-300 hover:text-red-500">
-                      remover
-                    </button>
-                  </li>
-                ))}
+                {cycleLogs.map((c) => {
+                  const realLength = c.cycle_end
+                    ? Math.round((new Date(c.cycle_end) - new Date(c.cycle_start)) / 86400000) + 1
+                    : null
+                  const isEditing = editingCycleEndId === c.id
+                  return (
+                    <li
+                      key={c.id}
+                      className="text-xs text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-2"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          {c.cycle_end ? (
+                            <p className="font-medium">
+                              Início: {fmt(c.cycle_start)} · Fim: {fmt(c.cycle_end)} ({realLength}d){' '}
+                              <span className="ml-1 inline-block px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-normal align-middle">
+                                confirmado
+                              </span>
+                            </p>
+                          ) : (
+                            <p className="font-medium">
+                              Início: {fmt(c.cycle_start)} · dura ~{c.period_length ?? 5}d{' '}
+                              <span className="ml-1 inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-normal align-middle">
+                                estimado
+                              </span>
+                            </p>
+                          )}
+                          {c.symptoms && <p className="text-slate-400">{c.symptoms}</p>}
+                          {c.note && <p className="text-slate-400">{c.note}</p>}
+                        </div>
+                        <button onClick={() => removeCycle(c.id)} className="text-slate-300 hover:text-red-500 shrink-0">
+                          remover
+                        </button>
+                      </div>
+                      {isEditing ? (
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={cycleEndValue}
+                            min={c.cycle_start}
+                            onChange={(e) => setCycleEndValue(e.target.value)}
+                            className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                          />
+                          <button
+                            onClick={() => saveCycleEnd(c.id)}
+                            className="text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            salvar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingCycleEndId(null)
+                              setCycleEndValue('')
+                            }}
+                            className="text-slate-400 hover:text-slate-600"
+                          >
+                            cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingCycleEndId(c.id)
+                            setCycleEndValue(c.cycle_end ?? '')
+                          }}
+                          className="mt-2 text-slate-400 hover:text-slate-700 underline underline-offset-2"
+                        >
+                          {c.cycle_end ? 'editar fim' : 'Registrar fim real'}
+                        </button>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </section>
