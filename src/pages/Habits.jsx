@@ -420,7 +420,7 @@ export default function Habits() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="h-full overflow-y-auto safe-scroll py-5 space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Hábitos</h1>

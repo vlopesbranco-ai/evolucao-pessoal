@@ -162,7 +162,7 @@ export default function CalendarPage() {
   const selectedPodcasts = podcastsOn(selectedDate)
 
   return (
-    <div className="space-y-6">
+    <div className="h-full overflow-y-auto safe-scroll py-5 space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">Calendário</h1>
         <p className="text-sm text-slate-500">Tarefas, eventos, datas importantes e intimidade, tudo num lugar só.</p>

@@ -118,7 +118,7 @@ export default function Dashboard() {
   }, [weekTasks, weekEvents])
 
   return (
-    <div className="space-y-6">
+    <div className="h-full overflow-y-auto safe-scroll py-5 space-y-6">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">Painel de hoje</h1>
         <p className="text-sm text-slate-500">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>

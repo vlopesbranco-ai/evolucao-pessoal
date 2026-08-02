@@ -150,7 +150,7 @@ export default function Content() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="h-full overflow-y-auto safe-scroll py-5 space-y-8">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">Quero ver / ler</h1>
         <p className="text-sm text-slate-500">Sua fila de filmes, séries, livros e afins, e seus podcasts.</p>

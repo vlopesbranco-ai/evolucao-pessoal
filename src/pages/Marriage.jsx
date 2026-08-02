@@ -341,7 +341,7 @@ export default function Marriage() {
 
   return (
     <div className="h-full flex flex-col overflow-y-hidden">
-      <div className="shrink-0 space-y-3">
+      <div className="shrink-0 space-y-3 pt-5">
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Casamento</h1>
           <p className="text-sm text-slate-500">Registro manual e privado — só você alimenta esses dados.</p>
@@ -364,7 +364,7 @@ export default function Marriage() {
         </div>
       </div>
 
-      <div ref={contentRef} className="flex-1 min-h-0 overflow-y-auto safe-scroll pt-4 space-y-6">
+      <div ref={contentRef} className="flex-1 min-h-0 overflow-y-auto safe-scroll pt-4 pb-6 space-y-6">
       {tab === 'visao' && (
         <div className="space-y-6">
           {loading ? (

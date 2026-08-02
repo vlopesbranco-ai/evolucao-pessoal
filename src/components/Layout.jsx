@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { Home, ListChecks, Heart, CalendarDays, Bookmark, LogOut } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -13,12 +12,6 @@ const links = [
 
 export default function Layout() {
   const { signOut, user } = useAuth()
-  const location = useLocation()
-  const mainRef = useRef(null)
-
-  useEffect(() => {
-    mainRef.current?.scrollTo(0, 0)
-  }, [location.pathname])
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-slate-50">
@@ -46,7 +39,10 @@ export default function Layout() {
         </div>
       </header>
 
-      <main ref={mainRef} className="safe-scroll flex-1 min-h-0 max-w-4xl w-full mx-auto px-4 py-5">
+      {/* main nao rola mais: cada pagina possui seu proprio (e unico) container
+          de scroll, evitando dois scrolls aninhados que causavam o efeito de
+          "flutuar" ao rolar listas dentro de sub-paginas como o Casamento. */}
+      <main className="flex-1 min-h-0 overflow-hidden max-w-4xl w-full mx-auto px-4">
         <Outlet />
       </main>
 
