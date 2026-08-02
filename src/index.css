@@ -28,18 +28,37 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
+  /* Bloqueia qualquer gesto de toque nativo (pan/zoom) no documento —
+     só os containers .safe-scroll internos respondem a toque. Isso evita
+     que um arrasto vertical "vaze" horizontalmente e mexa as laterais. */
+  touch-action: none;
 }
 
 #root {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  touch-action: none;
 }
 
 .safe-scroll {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+  /* Trava o gesto de toque no eixo vertical apenas — impede que um
+     arrasto que não seja 100% vertical seja interpretado como pan
+     horizontal, o que fazia as bordas laterais "mexerem" ao rolar. */
+  touch-action: pan-y;
+}
+
+/* Containers com rolagem horizontal intencional (abas do Casamento,
+   heatmap) precisam do eixo horizontal liberado. */
+.safe-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
 }
 
 * {
@@ -55,10 +74,12 @@ button:active {
   transform: scale(0.97);
 }
 
-.safe-scroll::-webkit-scrollbar {
+.safe-scroll::-webkit-scrollbar,
+.safe-scroll-x::-webkit-scrollbar {
   display: none;
 }
-.safe-scroll {
+.safe-scroll,
+.safe-scroll-x {
   scrollbar-width: none;
 }
 

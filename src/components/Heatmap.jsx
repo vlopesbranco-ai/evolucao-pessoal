@@ -30,7 +30,7 @@ export default function Heatmap({ data, weeks = 16, colors = DEFAULT_COLORS, max
   }
 
   return (
-    <div className="flex gap-1 overflow-x-auto pb-1">
+    <div className="flex gap-1 safe-scroll-x pb-1">
       {cols.map((week, wi) => (
         <div key={wi} className="flex flex-col gap-1">
           {week.map((day) => (

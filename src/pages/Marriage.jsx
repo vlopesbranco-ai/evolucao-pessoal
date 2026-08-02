@@ -347,7 +347,7 @@ export default function Marriage() {
           <p className="text-sm text-slate-500">Registro manual e privado — só você alimenta esses dados.</p>
         </div>
 
-        <div className="-mx-4 px-4 bg-slate-50 flex gap-1 border-b border-slate-200 text-sm overflow-x-auto">
+        <div className="-mx-4 px-4 bg-slate-50 flex gap-1 border-b border-slate-200 text-sm safe-scroll-x">
           {TABS.map((t) => (
             <button
               key={t.key}
