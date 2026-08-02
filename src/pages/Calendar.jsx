@@ -212,9 +212,9 @@ export default function CalendarPage() {
                   onClick={() => setSelectedDate(dateStr)}
                   className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${
                     isSelected
-                      ? 'border-slate-900 bg-slate-900 text-white'
+                      ? 'border-brand-600 bg-brand-600 text-white'
                       : isToday
-                      ? 'border-slate-900 text-slate-900'
+                      ? 'border-brand-600 text-brand-600'
                       : inMonth
                       ? 'border-transparent text-slate-700 hover:bg-slate-50'
                       : 'border-transparent text-slate-300'
@@ -362,7 +362,7 @@ export default function CalendarPage() {
                   placeholder="Nota (opcional)"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 />
-                <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+                <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                   Adicionar tarefa
                 </button>
               </form>
@@ -382,7 +382,7 @@ export default function CalendarPage() {
                       onClick={() => setEventCategory(c.value)}
                       className={`px-2.5 py-1 rounded-full text-xs border ${
                         eventCategory === c.value
-                          ? 'bg-slate-900 text-white border-slate-900'
+                          ? 'bg-brand-600 text-white border-brand-600'
                           : 'border-slate-300 text-slate-500'
                       }`}
                     >
@@ -407,7 +407,7 @@ export default function CalendarPage() {
                   rows={2}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
                 />
-                <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+                <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                   Adicionar evento
                 </button>
               </form>

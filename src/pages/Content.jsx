@@ -198,7 +198,7 @@ export default function Content() {
               ))}
             </select>
           </div>
-          <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+          <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar à fila
           </button>
         </form>
@@ -286,7 +286,7 @@ export default function Content() {
             placeholder="Nota (opcional, ex: onde ouvir)"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
           />
-          <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+          <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar podcast
           </button>
         </form>

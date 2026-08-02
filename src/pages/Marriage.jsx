@@ -354,7 +354,7 @@ export default function Marriage() {
               onClick={() => setTab(t.key)}
               className={`px-3 py-2 border-b-2 whitespace-nowrap ${
                 tab === t.key
-                  ? 'border-slate-900 text-slate-900 font-medium'
+                  ? 'border-brand-600 text-brand-600 font-medium'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -496,7 +496,7 @@ export default function Marriage() {
                     onClick={() => setCalSelectedDate(dateStr)}
                     className={`relative aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${bg} ${textColor} ${
                       isSelected
-                        ? 'border-slate-900 ring-2 ring-slate-900'
+                        ? 'border-brand-600 ring-2 ring-brand-600'
                         : isToday
                         ? 'border-slate-500'
                         : 'border-transparent'
@@ -581,7 +581,7 @@ export default function Marriage() {
                 placeholder="Nota (opcional)"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Registrar início de ciclo
               </button>
             </form>
@@ -703,7 +703,7 @@ export default function Marriage() {
                 placeholder="Nota (opcional)"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Registrar
               </button>
             </form>
@@ -763,14 +763,14 @@ export default function Marriage() {
                   onClick={() => setMoodValue(m.value)}
                   title={m.label}
                   className={`flex-1 text-2xl py-2 rounded-lg border ${
-                    moodValue === m.value ? 'border-slate-900 bg-slate-100' : 'border-transparent hover:bg-slate-50'
+                    moodValue === m.value ? 'border-brand-600 bg-brand-50' : 'border-transparent hover:bg-slate-50'
                   }`}
                 >
                   {m.emoji}
                 </button>
               ))}
             </div>
-            <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+            <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
               Registrar humor de hoje
             </button>
           </form>
@@ -845,7 +845,7 @@ export default function Marriage() {
                 placeholder="Nota (opcional)"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Adicionar
               </button>
             </form>
@@ -885,7 +885,7 @@ export default function Marriage() {
                     onClick={() => setNoteCategory(c.value)}
                     className={`px-3 py-1.5 rounded-full text-xs border ${
                       noteCategory === c.value
-                        ? 'bg-slate-900 text-white border-slate-900'
+                        ? 'bg-brand-600 text-white border-brand-600'
                         : 'border-slate-300 text-slate-500'
                     }`}
                   >
@@ -900,7 +900,7 @@ export default function Marriage() {
                 rows={3}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800">
+              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Salvar anotação
               </button>
             </form>

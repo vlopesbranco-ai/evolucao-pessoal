@@ -123,7 +123,7 @@ function SchedulePicker({ f, setF }) {
               }
               className={`w-8 h-8 rounded-full text-xs border ${
                 f.days_of_week.includes(d.value)
-                  ? 'bg-slate-900 text-white border-slate-900'
+                  ? 'bg-brand-600 text-white border-brand-600'
                   : 'border-slate-300 text-slate-500 hover:border-slate-400'
               }`}
             >
@@ -362,7 +362,7 @@ export default function Habits() {
             </button>
             <button
               onClick={() => saveEdit(habit.id)}
-              className="rounded-lg bg-slate-900 text-white px-4 py-2 text-xs font-medium hover:bg-slate-800"
+              className="rounded-lg bg-brand-600 text-white px-4 py-2 text-xs font-medium hover:bg-brand-700"
             >
               Salvar
             </button>
@@ -429,7 +429,7 @@ export default function Habits() {
         <button
           onClick={() => setShowAddForm((v) => !v)}
           className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium ${
-            showAddForm ? 'bg-slate-100 text-slate-600' : 'bg-slate-900 text-white hover:bg-slate-800'
+            showAddForm ? 'bg-slate-100 text-slate-600' : 'bg-brand-600 text-white hover:bg-brand-700'
           }`}
         >
           {showAddForm ? <X size={16} /> : <Plus size={16} />}
@@ -449,7 +449,7 @@ export default function Habits() {
           <CategoryPicker value={form.category} onChange={(c) => setForm({ ...form, category: c })} />
           <HabitTypeToggle value={form.habit_type} onChange={(v) => setForm({ ...form, habit_type: v })} />
           <SchedulePicker f={form} setF={setForm} />
-          <button className="w-full rounded-lg bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:bg-slate-800">
+          <button className="w-full rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar
           </button>
         </form>

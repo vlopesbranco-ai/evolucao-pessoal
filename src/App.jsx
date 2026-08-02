@@ -10,7 +10,7 @@ import Content from './pages/Content'
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-sm text-slate-400">Carregando...</div>
+  if (loading) return <div className="h-dvh flex items-center justify-center text-sm text-slate-400 bg-slate-50">Carregando...</div>
   if (!user) return <Navigate to="/login" replace />
   return children
 }

@@ -203,7 +203,7 @@ export default function Dashboard() {
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={24} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#0f172a" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#4f46e5" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

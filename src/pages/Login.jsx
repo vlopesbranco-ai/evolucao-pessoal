@@ -26,8 +26,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div
+      className="h-dvh flex items-center justify-center bg-slate-50 px-4"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+        <div className="w-11 h-11 rounded-xl bg-brand-600 text-white flex items-center justify-center text-lg font-semibold mb-4">
+          E
+        </div>
         <h1 className="text-xl font-semibold text-slate-900 mb-1">Evolução Pessoal</h1>
         <p className="text-sm text-slate-500 mb-6">
           {mode === 'signin' ? 'Entre na sua conta' : 'Crie sua conta'}
@@ -40,7 +49,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
           <div>
@@ -51,7 +60,7 @@ export default function Login() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -59,7 +68,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-lg bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             {busy ? 'Aguarde...' : mode === 'signin' ? 'Entrar' : 'Criar conta'}
           </button>
