@@ -86,7 +86,6 @@ export default function Marriage() {
 
   const [cycleDate, setCycleDate] = useState(todayStr())
   const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
-  const [cycleSymptoms, setCycleSymptoms] = useState('')
   const [cycleNote, setCycleNote] = useState('')
   const [editingCycleEndId, setEditingCycleEndId] = useState(null)
   const [cycleEndValue, setCycleEndValue] = useState('')
@@ -151,10 +150,8 @@ export default function Marriage() {
       user_id: user.id,
       cycle_start: cycleDate,
       period_length: cyclePeriodLength,
-      symptoms: cycleSymptoms.trim() || null,
       note: cycleNote.trim() || null,
     })
-    setCycleSymptoms('')
     setCycleNote('')
     setCycleDate(todayStr())
     setCyclePeriodLength(5)
@@ -549,20 +546,12 @@ export default function Marriage() {
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-700">Ciclo da esposa</h2>
             <form onSubmit={addCycle} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={cycleDate}
-                  onChange={(e) => setCycleDate(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                />
-                <input
-                  value={cycleSymptoms}
-                  onChange={(e) => setCycleSymptoms(e.target.value)}
-                  placeholder="Sintomas (opcional)"
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
+              <input
+                type="date"
+                value={cycleDate}
+                onChange={(e) => setCycleDate(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <label htmlFor="periodLength">Duração do período (dias)</label>
                 <input
@@ -746,13 +735,13 @@ export default function Marriage() {
                 type="date"
                 value={moodDate}
                 onChange={(e) => setMoodDate(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-36 shrink-0 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
               <input
                 value={moodNote}
                 onChange={(e) => setMoodNote(e.target.value)}
                 placeholder="Nota (opcional)"
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="flex-1 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
             <div className="flex gap-2 justify-between">

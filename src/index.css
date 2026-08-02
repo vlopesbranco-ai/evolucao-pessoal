@@ -83,6 +83,15 @@ button:active {
   scrollbar-width: none;
 }
 
+/* input[type=date] nativo do iOS tem largura mínima intrínseca que pode
+   ultrapassar o container quando dentro de uma linha flex sem min-width:0.
+   Trava aqui como rede de segurança global. */
+input[type='date'] {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 /* iOS Safari auto-zooma a tela ao focar um input/select/textarea com
    font-size menor que 16px, o que causa a sensação de tela "flutuando"
    quando o teclado abre. Forçamos 16px em telas pequenas pra evitar isso. */
