@@ -27,7 +27,7 @@ export default function Login() {
 
   return (
     <div
-      className="h-dvh flex items-center justify-center bg-slate-50 px-4"
+      className="h-full flex items-center justify-center bg-slate-50 px-4"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',

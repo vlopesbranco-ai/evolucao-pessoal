@@ -13,15 +13,26 @@
   --color-brand-900: #312e81;
 }
 
+/* O documento (html/body) fica travado no viewport visual e nunca rola.
+   Isso impede o Safari iOS de recalcular a barra de endereco (e o valor
+   de 100dvh) no meio de um gesto de scroll, que era o que fazia a tela
+   inteira "balancar"/flutuar. Toda rolagem real acontece só dentro dos
+   containers .safe-scroll internos de cada página. */
 html,
 body {
+  position: fixed;
+  inset: 0;
   height: 100%;
+  width: 100%;
   margin: 0;
+  overflow: hidden;
   overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
 }
 
 #root {
-  height: 100dvh;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
