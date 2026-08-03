@@ -84,12 +84,16 @@ button:active {
 }
 
 /* input[type=date] nativo do iOS tem largura mínima intrínseca que pode
-   ultrapassar o container quando dentro de uma linha flex sem min-width:0.
-   Trava aqui como rede de segurança global. */
+   ultrapassar o container quando dentro de uma linha flex sem min-width:0,
+   e o Safari aplica seu próprio "chrome" nativo por cima do border-radius
+   customizado, fazendo a caixa parecer cortada/vazando. appearance:none
+   remove esse estilo nativo e deixa nosso border/radius controlar tudo. */
 input[type='date'] {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* iOS Safari auto-zooma a tela ao focar um input/select/textarea com

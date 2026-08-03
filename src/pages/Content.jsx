@@ -66,6 +66,8 @@ export default function Content() {
   const [watchlist, setWatchlist] = useState([])
   const [loading, setLoading] = useState(true)
   const [showWatched, setShowWatched] = useState(false)
+  const [filterCategory, setFilterCategory] = useState('todos')
+  const [filterGenre, setFilterGenre] = useState('todos')
   const [suggestion, setSuggestion] = useState(null)
 
   const [queueTitle, setQueueTitle] = useState('')
@@ -133,15 +135,28 @@ export default function Content() {
   }
 
   const queueItems = useMemo(
-    () => watchlist.filter((i) => i.category !== 'podcast' && (showWatched || !i.watched)),
-    [watchlist, showWatched]
+    () =>
+      watchlist.filter(
+        (i) =>
+          i.category !== 'podcast' &&
+          (showWatched || !i.watched) &&
+          (filterCategory === 'todos' || i.category === filterCategory) &&
+          (filterGenre === 'todos' || i.genre === filterGenre)
+      ),
+    [watchlist, showWatched, filterCategory, filterGenre]
   )
   const podcasts = useMemo(() => watchlist.filter((i) => i.category === 'podcast'), [watchlist])
   const todayWeekday = new Date().getDay()
   const releasingToday = podcasts.filter((p) => p.release_weekday === todayWeekday)
 
   function pickSuggestion() {
-    const pending = watchlist.filter((i) => i.category !== 'podcast' && !i.watched)
+    const pending = watchlist.filter(
+      (i) =>
+        i.category !== 'podcast' &&
+        !i.watched &&
+        (filterCategory === 'todos' || i.category === filterCategory) &&
+        (filterGenre === 'todos' || i.genre === filterGenre)
+    )
     if (pending.length === 0) {
       setSuggestion(null)
       return
@@ -203,6 +218,33 @@ export default function Content() {
           </button>
         </form>
 
+        <div className="flex gap-2">
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="flex-1 min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
+          >
+            <option value="todos">Todos os tipos</option>
+            {CONTENT_TYPES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.emoji} {c.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterGenre}
+            onChange={(e) => setFilterGenre(e.target.value)}
+            className="flex-1 min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
+          >
+            <option value="todos">Todos os gêneros</option>
+            {GENRES.map((g) => (
+              <option key={g.value} value={g.value}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-xs text-slate-500">
             <input type="checkbox" checked={showWatched} onChange={(e) => setShowWatched(e.target.checked)} />
@@ -226,7 +268,11 @@ export default function Content() {
         {loading ? (
           <p className="text-sm text-slate-400">Carregando...</p>
         ) : queueItems.length === 0 ? (
-          <p className="text-sm text-slate-400">Nada na fila. Adicione algo acima.</p>
+          <p className="text-sm text-slate-400">
+            {filterCategory !== 'todos' || filterGenre !== 'todos'
+              ? 'Nada encontrado com esse filtro.'
+              : 'Nada na fila. Adicione algo acima.'}
+          </p>
         ) : (
           <ul className="space-y-2">
             {queueItems.map((item) => (
