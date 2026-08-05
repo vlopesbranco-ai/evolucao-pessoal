@@ -8,9 +8,13 @@ import { todayStr, localDateStr } from '../lib/date'
 import { categoryInfo } from '../lib/eventCategories'
 
 function isScheduledToday(habit) {
+  return isScheduledOnWeekday(habit, new Date().getDay())
+}
+
+function isScheduledOnWeekday(habit, weekday) {
   if (habit.times_per_week) return true
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
-  return habit.days_of_week.includes(new Date().getDay())
+  return habit.days_of_week.includes(weekday)
 }
 
 function startOfWeek(date) {
@@ -70,9 +74,24 @@ export default function Dashboard() {
       setBuild({ done: buildHabits.filter((h) => doneIds.has(h.id)).length, total: buildHabits.length })
       setAvoid({ done: avoidHabits.filter((h) => doneIds.has(h.id)).length, total: avoidHabits.length })
 
-      const heatmap = {}
+      // Consistência por dia: % de hábitos cumpridos em relação aos que
+      // estavam programados naquele dia (não uma contagem bruta).
+      const habitIds = new Set((habits ?? []).map((h) => h.id))
+      const doneByDate = {}
       for (const log of logs ?? []) {
-        heatmap[log.log_date] = (heatmap[log.log_date] ?? 0) + 1
+        if (!habitIds.has(log.habit_id)) continue
+        doneByDate[log.log_date] = (doneByDate[log.log_date] ?? 0) + 1
+      }
+      const heatmap = {}
+      const dayCursor = new Date(since)
+      const todayForHeatmap = new Date()
+      todayForHeatmap.setHours(0, 0, 0, 0)
+      while (dayCursor <= todayForHeatmap) {
+        const dateStr = localDateStr(dayCursor)
+        const weekday = dayCursor.getDay()
+        const total = (habits ?? []).filter((h) => isScheduledOnWeekday(h, weekday)).length
+        heatmap[dateStr] = { completed: doneByDate[dateStr] ?? 0, total }
+        dayCursor.setDate(dayCursor.getDate() + 1)
       }
       setHeatmapData(heatmap)
 
@@ -193,7 +212,18 @@ export default function Dashboard() {
         <>
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <p className="text-sm font-medium text-slate-700 mb-3">Consistência (últimas 16 semanas)</p>
-            <Heatmap data={heatmapData} weeks={16} />
+            <Heatmap data={heatmapData} weeks={16} mode="percentage" />
+            <div className="flex items-center gap-3 mt-3 text-[11px] text-slate-400">
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-red-400 inline-block" /> {'<'}50%
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-amber-400 inline-block" /> 50–80%
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" /> {'>'}80%
+              </span>
+            </div>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-4">
