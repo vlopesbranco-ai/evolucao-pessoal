@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { supabase } from '../lib/supabaseClient'
 import Heatmap from '../components/Heatmap'
 import { XP_PER_CHECKIN, levelForXp } from '../lib/gamification'
-import { todayStr, localDateStr } from '../lib/date'
+import { todayStr, localDateStr, effectiveDueDate, daysLate } from '../lib/date'
 import { categoryInfo } from '../lib/eventCategories'
 
 function isScheduledToday(habit) {
@@ -56,10 +56,11 @@ export default function Dashboard() {
           .from('habit_logs')
           .select('habit_id, log_date')
           .gte('log_date', localDateStr(since)),
+        // Pega tudo até o fim da semana; tarefas atrasadas (due_date antigo, não
+        // concluídas) são filtradas abaixo e reaparecem como se fossem de hoje.
         supabase
           .from('tasks')
           .select('*')
-          .gte('due_date', weekStartStr)
           .lte('due_date', weekEndStr)
           .order('due_date', { ascending: true }),
         supabase.from('calendar_events').select('*'),
@@ -114,7 +115,8 @@ export default function Dashboard() {
       setWeeklyData(weeks)
       setXp((logs ?? []).length * XP_PER_CHECKIN)
 
-      setWeekTasks(taskData ?? [])
+      const relevantTasks = (taskData ?? []).filter((t) => t.due_date >= weekStartStr || !t.done)
+      setWeekTasks(relevantTasks)
       const eventsThisWeek = (eventData ?? []).filter((ev) => {
         const end = ev.end_date || ev.start_date
         return end >= weekStartStr && ev.start_date <= weekEndStr
@@ -130,7 +132,13 @@ export default function Dashboard() {
 
   const weekItems = useMemo(() => {
     const items = [
-      ...weekTasks.map((t) => ({ type: 'task', date: t.due_date, title: t.title, done: t.done })),
+      ...weekTasks.map((t) => ({
+        type: 'task',
+        date: effectiveDueDate(t),
+        title: t.title,
+        done: t.done,
+        late: daysLate(t),
+      })),
       ...weekEvents.map((ev) => ({ type: 'event', date: ev.start_date, title: ev.title, category: ev.category })),
     ]
     return items.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
@@ -191,19 +199,29 @@ export default function Dashboard() {
           <p className="text-xs text-slate-400">Nada marcado pra essa semana.</p>
         ) : (
           <ul className="space-y-1">
-            {weekItems.map((item, i) => (
-              <li key={i} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2">
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      item.type === 'task' ? 'bg-sky-500' : categoryInfo(item.category).dot
-                    }`}
-                  />
-                  <span className={item.done ? 'line-through text-slate-400' : 'text-slate-700'}>{item.title}</span>
-                </span>
-                <span className="text-slate-400">{item.date ? fmtShort(item.date) : ''}</span>
-              </li>
-            ))}
+            {weekItems.map((item, i) => {
+              const isLate = item.type === 'task' && item.late > 0
+              return (
+                <li key={i} className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        item.type === 'task' ? (isLate ? 'bg-red-500' : 'bg-sky-500') : categoryInfo(item.category).dot
+                      }`}
+                    />
+                    <span className={item.done ? 'line-through text-slate-400' : isLate ? 'text-red-700' : 'text-slate-700'}>
+                      {item.title}
+                      {isLate && (
+                        <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium align-middle">
+                          atrasada {item.late}d
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                  <span className="text-slate-400">{item.date ? fmtShort(item.date) : ''}</span>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

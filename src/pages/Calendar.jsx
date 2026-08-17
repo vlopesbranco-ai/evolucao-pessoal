@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { todayStr, localDateStr } from '../lib/date'
+import { todayStr, localDateStr, effectiveDueDate, daysLate } from '../lib/date'
 import { EVENT_CATEGORIES, categoryInfo } from '../lib/eventCategories'
 
 const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -119,7 +119,7 @@ export default function CalendarPage() {
   }
 
   function tasksOn(dateStr) {
-    return tasks.filter((t) => t.due_date === dateStr)
+    return tasks.filter((t) => effectiveDueDate(t) === dateStr)
   }
 
   function eventsOn(dateStr) {
@@ -151,7 +151,7 @@ export default function CalendarPage() {
     () =>
       tasks
         .filter((t) => !t.done)
-        .sort((a, b) => (a.due_date || '9999').localeCompare(b.due_date || '9999'))
+        .sort((a, b) => (effectiveDueDate(a) || '9999').localeCompare(effectiveDueDate(b) || '9999'))
         .slice(0, 8),
     [tasks]
   )
@@ -223,7 +223,11 @@ export default function CalendarPage() {
                   <span>{date.getDate()}</span>
                   <span className="flex gap-0.5 flex-wrap justify-center max-w-[24px]">
                     {dayTasks.length > 0 && (
-                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-sky-500'}`} />
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          isSelected ? 'bg-white' : dayTasks.some((t) => daysLate(t) > 0) ? 'bg-red-500' : 'bg-sky-500'
+                        }`}
+                      />
                     )}
                     {eventCategoriesToday.map((cat) => (
                       <span
@@ -245,6 +249,7 @@ export default function CalendarPage() {
 
           <div className="flex flex-wrap gap-3 mt-4 text-xs text-slate-500">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500" /> Tarefa</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Tarefa atrasada</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Data importante</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Podcast</span>
             {EVENT_CATEGORIES.map((c) => (
@@ -312,20 +317,33 @@ export default function CalendarPage() {
 
             {selectedTasks.length > 0 && (
               <ul className="space-y-1">
-                {selectedTasks.map((t) => (
-                  <li key={t.id} className="flex items-start justify-between gap-2 text-xs bg-sky-50 rounded-lg px-2 py-1.5">
-                    <label className="flex items-start gap-2 flex-1">
-                      <input type="checkbox" checked={t.done} onChange={() => toggleTask(t)} className="mt-0.5" />
-                      <span className={t.done ? 'line-through text-slate-400' : 'text-sky-700'}>
-                        {t.title}
-                        {t.note && <span className="block text-slate-400">{t.note}</span>}
-                      </span>
-                    </label>
-                    <button onClick={() => removeTask(t.id)} className="text-slate-300 hover:text-red-500">
-                      ×
-                    </button>
-                  </li>
-                ))}
+                {selectedTasks.map((t) => {
+                  const late = daysLate(t)
+                  return (
+                    <li
+                      key={t.id}
+                      className={`flex items-start justify-between gap-2 text-xs rounded-lg px-2 py-1.5 ${
+                        late > 0 ? 'bg-red-50' : 'bg-sky-50'
+                      }`}
+                    >
+                      <label className="flex items-start gap-2 flex-1">
+                        <input type="checkbox" checked={t.done} onChange={() => toggleTask(t)} className="mt-0.5" />
+                        <span className={t.done ? 'line-through text-slate-400' : late > 0 ? 'text-red-700' : 'text-sky-700'}>
+                          {t.title}
+                          {late > 0 && (
+                            <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium align-middle">
+                              atrasada {late}d
+                            </span>
+                          )}
+                          {t.note && <span className="block text-slate-400">{t.note}</span>}
+                        </span>
+                      </label>
+                      <button onClick={() => removeTask(t.id)} className="text-slate-300 hover:text-red-500">
+                        ×
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             )}
 
@@ -422,12 +440,17 @@ export default function CalendarPage() {
               <p className="text-xs text-slate-400">Nenhuma tarefa pendente.</p>
             ) : (
               <ul className="space-y-1">
-                {upcomingTasks.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between text-xs text-slate-600">
-                    <span>{t.title}</span>
-                    <span className="text-slate-400">{t.due_date ? fmt(t.due_date) : 'sem data'}</span>
-                  </li>
-                ))}
+                {upcomingTasks.map((t) => {
+                  const late = daysLate(t)
+                  return (
+                    <li key={t.id} className="flex items-center justify-between text-xs text-slate-600">
+                      <span>{t.title}</span>
+                      <span className={late > 0 ? 'text-red-500 font-medium' : 'text-slate-400'}>
+                        {late > 0 ? `atrasada ${late}d` : t.due_date ? fmt(t.due_date) : 'sem data'}
+                      </span>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
