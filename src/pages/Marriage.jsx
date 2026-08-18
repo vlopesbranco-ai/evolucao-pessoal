@@ -83,7 +83,7 @@ export default function Marriage() {
   const [intimacyNote, setIntimacyNote] = useState('')
   const [intimacyDate, setIntimacyDate] = useState(todayStr())
   const [usedProtection, setUsedProtection] = useState(true)
-  const [intimacyOral, setIntimacyOral] = useState(false)
+  const [intimacyType, setIntimacyType] = useState('sexo') // 'sexo' | 'oral'
 
   const [cycleDate, setCycleDate] = useState(todayStr())
   const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
@@ -131,14 +131,14 @@ export default function Marriage() {
     await supabase.from('intimacy_logs').insert({
       user_id: user.id,
       occurred_at: intimacyDate,
-      used_protection: usedProtection,
-      oral: intimacyOral,
+      used_protection: intimacyType === 'oral' ? null : usedProtection,
+      oral: intimacyType === 'oral',
       note: intimacyNote.trim() || null,
     })
     setIntimacyNote('')
     setIntimacyDate(todayStr())
     setUsedProtection(true)
-    setIntimacyOral(false)
+    setIntimacyType('sexo')
     load()
   }
 
@@ -253,8 +253,22 @@ export default function Marriage() {
     return !!(cycleInsights && calInRange(dateStr, cycleInsights.fertileWindow))
   }
 
+  function calIntimacyLogsOn(dateStr) {
+    return intimacyLogs.filter((i) => i.occurred_at === dateStr)
+  }
+
   function calIntimacyOn(dateStr) {
     return intimacyLogs.some((i) => i.occurred_at === dateStr)
+  }
+
+  // "Relação" = qualquer registro com used_protection preenchido (com/sem proteção).
+  // "Só oral" = registros marcados como oral sem relação (used_protection null).
+  function calRegularIntimacyOn(dateStr) {
+    return calIntimacyLogsOn(dateStr).some((i) => i.used_protection !== null)
+  }
+
+  function calOralOnlyOn(dateStr) {
+    return calIntimacyLogsOn(dateStr).some((i) => i.used_protection === null && i.oral)
   }
 
   const calGrid = useMemo(() => {
@@ -489,7 +503,8 @@ export default function Marriage() {
                 const isSelected = dateStr === calSelectedDate
                 const periodStatus = calPeriodOn(dateStr)
                 const fertile = calFertileOn(dateStr)
-                const intimacy = calIntimacyOn(dateStr)
+                const regularIntimacy = calRegularIntimacyOn(dateStr)
+                const oralOnly = calOralOnlyOn(dateStr)
 
                 let bg = 'bg-transparent'
                 let textColor = inMonth ? 'text-slate-700' : 'text-slate-300'
@@ -517,7 +532,12 @@ export default function Marriage() {
                     }`}
                   >
                     <span>{date.getDate()}</span>
-                    {intimacy && <span className="absolute bottom-0.5 text-[10px] leading-none">❤️</span>}
+                    {(regularIntimacy || oralOnly) && (
+                      <span className="absolute bottom-0.5 flex gap-0.5 text-[9px] leading-none">
+                        {regularIntimacy && <span>❤️</span>}
+                        {oralOnly && <span>🧡</span>}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -527,7 +547,8 @@ export default function Marriage() {
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-500" /> Período registrado</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 border border-pink-300" /> Período previsto</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-300" /> Janela fértil</span>
-              <span className="flex items-center gap-1">❤️ Intimidade</span>
+              <span className="flex items-center gap-1">❤️ Relação</span>
+              <span className="flex items-center gap-1">🧡 Só sexo oral</span>
             </div>
           </div>
 
@@ -542,8 +563,11 @@ export default function Marriage() {
             {calFertileOn(calSelectedDate) && (
               <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">🌸 Janela fértil estimada</p>
             )}
-            {calIntimacyOn(calSelectedDate) && (
-              <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1">❤️ Atividade íntima registrada</p>
+            {calRegularIntimacyOn(calSelectedDate) && (
+              <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1">❤️ Relação registrada</p>
+            )}
+            {calOralOnlyOn(calSelectedDate) && (
+              <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-2 py-1">🧡 Sexo oral registrado</p>
             )}
             {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-slate-400">Nenhum registro nesse dia.</p>
@@ -686,32 +710,45 @@ export default function Marriage() {
               <div className="flex gap-1 text-xs">
                 <button
                   type="button"
-                  onClick={() => setUsedProtection(true)}
+                  onClick={() => setIntimacyType('sexo')}
                   className={`flex-1 px-3 py-1.5 rounded-full border ${
-                    usedProtection ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
+                    intimacyType === 'sexo' ? 'bg-red-500 text-white border-red-500' : 'border-slate-300 text-slate-500'
                   }`}
                 >
-                  Com proteção
+                  ❤️ Relação
                 </button>
                 <button
                   type="button"
-                  onClick={() => setUsedProtection(false)}
+                  onClick={() => setIntimacyType('oral')}
                   className={`flex-1 px-3 py-1.5 rounded-full border ${
-                    !usedProtection ? 'bg-amber-500 text-white border-amber-500' : 'border-slate-300 text-slate-500'
+                    intimacyType === 'oral' ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-300 text-slate-500'
                   }`}
                 >
-                  Sem proteção
+                  🧡 Só oral
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIntimacyOral((v) => !v)}
-                className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border text-xs ${
-                  intimacyOral ? 'bg-red-400 text-white border-red-400' : 'border-slate-300 text-slate-500'
-                }`}
-              >
-                {intimacyOral ? '✓ ' : ''}Sexo oral
-              </button>
+              {intimacyType === 'sexo' && (
+                <div className="flex gap-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setUsedProtection(true)}
+                    className={`flex-1 px-3 py-1.5 rounded-full border ${
+                      usedProtection ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
+                    }`}
+                  >
+                    Com proteção
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUsedProtection(false)}
+                    className={`flex-1 px-3 py-1.5 rounded-full border ${
+                      !usedProtection ? 'bg-amber-500 text-white border-amber-500' : 'border-slate-300 text-slate-500'
+                    }`}
+                  >
+                    Sem proteção
+                  </button>
+                </div>
+              )}
               <input
                 value={intimacyNote}
                 onChange={(e) => setIntimacyNote(e.target.value)}
@@ -736,13 +773,21 @@ export default function Marriage() {
                     <div>
                       <p className="font-medium">
                         {fmt(i.occurred_at)}{' '}
-                        <span className="text-slate-400 font-normal">
-                          {i.used_protection === null ? '' : i.used_protection ? '· com proteção' : '· sem proteção'}
-                        </span>
-                        {i.oral && (
-                          <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-medium align-middle">
-                            oral
+                        {i.used_protection === null ? (
+                          <span className="text-slate-400 font-normal">
+                            {i.oral ? '· só sexo oral' : ''}
                           </span>
+                        ) : (
+                          <>
+                            <span className="text-slate-400 font-normal">
+                              {i.used_protection ? '· com proteção' : '· sem proteção'}
+                            </span>
+                            {i.oral && (
+                              <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[10px] font-medium align-middle">
+                                + oral
+                              </span>
+                            )}
+                          </>
                         )}
                       </p>
                       {i.note && <p className="text-slate-400">{i.note}</p>}
