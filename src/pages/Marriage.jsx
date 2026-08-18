@@ -535,7 +535,7 @@ export default function Marriage() {
                     {(regularIntimacy || oralOnly) && (
                       <span className="absolute bottom-0.5 flex gap-0.5 text-[9px] leading-none">
                         {regularIntimacy && <span>❤️</span>}
-                        {oralOnly && <span>🧡</span>}
+                        {oralOnly && <span>💜</span>}
                       </span>
                     )}
                   </button>
@@ -548,7 +548,7 @@ export default function Marriage() {
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 border border-pink-300" /> Período previsto</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-300" /> Janela fértil</span>
               <span className="flex items-center gap-1">❤️ Relação</span>
-              <span className="flex items-center gap-1">🧡 Só sexo oral</span>
+              <span className="flex items-center gap-1">💜 Outra intimidade</span>
             </div>
           </div>
 
@@ -567,7 +567,7 @@ export default function Marriage() {
               <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1">❤️ Relação registrada</p>
             )}
             {calOralOnlyOn(calSelectedDate) && (
-              <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-2 py-1">🧡 Sexo oral registrado</p>
+              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">💜 Outra intimidade registrada</p>
             )}
             {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-slate-400">Nenhum registro nesse dia.</p>
@@ -721,10 +721,10 @@ export default function Marriage() {
                   type="button"
                   onClick={() => setIntimacyType('oral')}
                   className={`flex-1 px-3 py-1.5 rounded-full border ${
-                    intimacyType === 'oral' ? 'bg-orange-500 text-white border-orange-500' : 'border-slate-300 text-slate-500'
+                    intimacyType === 'oral' ? 'bg-purple-500 text-white border-purple-500' : 'border-slate-300 text-slate-500'
                   }`}
                 >
-                  🧡 Só oral
+                  💜 Outra intimidade
                 </button>
               </div>
               {intimacyType === 'sexo' && (
@@ -775,7 +775,7 @@ export default function Marriage() {
                         {fmt(i.occurred_at)}{' '}
                         {i.used_protection === null ? (
                           <span className="text-slate-400 font-normal">
-                            {i.oral ? '· só sexo oral' : ''}
+                            {i.oral ? '· outra intimidade' : ''}
                           </span>
                         ) : (
                           <>
@@ -783,8 +783,8 @@ export default function Marriage() {
                               {i.used_protection ? '· com proteção' : '· sem proteção'}
                             </span>
                             {i.oral && (
-                              <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[10px] font-medium align-middle">
-                                + oral
+                              <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[10px] font-medium align-middle">
+                                + outra
                               </span>
                             )}
                           </>
