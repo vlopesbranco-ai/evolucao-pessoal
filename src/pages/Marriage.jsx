@@ -83,6 +83,7 @@ export default function Marriage() {
   const [intimacyNote, setIntimacyNote] = useState('')
   const [intimacyDate, setIntimacyDate] = useState(todayStr())
   const [usedProtection, setUsedProtection] = useState(true)
+  const [intimacyOral, setIntimacyOral] = useState(false)
 
   const [cycleDate, setCycleDate] = useState(todayStr())
   const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
@@ -131,11 +132,13 @@ export default function Marriage() {
       user_id: user.id,
       occurred_at: intimacyDate,
       used_protection: usedProtection,
+      oral: intimacyOral,
       note: intimacyNote.trim() || null,
     })
     setIntimacyNote('')
     setIntimacyDate(todayStr())
     setUsedProtection(true)
+    setIntimacyOral(false)
     load()
   }
 
@@ -284,8 +287,18 @@ export default function Marriage() {
 
     const withProtection = intimacyLogs.filter((l) => l.used_protection === true).length
     const withoutProtection = intimacyLogs.filter((l) => l.used_protection === false).length
+    const oralCount = intimacyLogs.filter((l) => l.oral).length
 
-    return { avgPerWeek, avgPerMonth, longestGap, daysSinceLast, withProtection, withoutProtection, total: intimacyLogs.length }
+    return {
+      avgPerWeek,
+      avgPerMonth,
+      longestGap,
+      daysSinceLast,
+      withProtection,
+      withoutProtection,
+      oralCount,
+      total: intimacyLogs.length,
+    }
   }, [intimacyLogs])
 
   const monthlyChartData = useMemo(() => {
@@ -388,6 +401,10 @@ export default function Marriage() {
                   <p className="text-xl font-semibold text-slate-900">{stats.daysSinceLast}d</p>
                 </div>
               </div>
+
+              <p className="text-xs text-slate-400">
+                Sexo oral registrado em {stats.oralCount} de {stats.total} registros.
+              </p>
 
               <div className="bg-white border border-slate-200 rounded-xl p-4">
                 <p className="text-sm font-medium text-slate-700 mb-3">Frequência por mês (últimos 12 meses)</p>
@@ -686,6 +703,15 @@ export default function Marriage() {
                   Sem proteção
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setIntimacyOral((v) => !v)}
+                className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border text-xs ${
+                  intimacyOral ? 'bg-red-400 text-white border-red-400' : 'border-slate-300 text-slate-500'
+                }`}
+              >
+                {intimacyOral ? '✓ ' : ''}Sexo oral
+              </button>
               <input
                 value={intimacyNote}
                 onChange={(e) => setIntimacyNote(e.target.value)}
@@ -713,6 +739,11 @@ export default function Marriage() {
                         <span className="text-slate-400 font-normal">
                           {i.used_protection === null ? '' : i.used_protection ? '· com proteção' : '· sem proteção'}
                         </span>
+                        {i.oral && (
+                          <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-medium align-middle">
+                            oral
+                          </span>
+                        )}
                       </p>
                       {i.note && <p className="text-slate-400">{i.note}</p>}
                     </div>

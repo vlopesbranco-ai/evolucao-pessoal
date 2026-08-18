@@ -26,6 +26,16 @@ function isScheduledToday(habit) {
   return habit.days_of_week.includes(new Date().getDay())
 }
 
+// Marcador de conclusão do dia: começa vermelho e vai passando por amarelo
+// até verde conforme os hábitos programados pra hoje vão sendo marcados.
+function pctBucket(done, total) {
+  if (!total) return null
+  const pct = (done / total) * 100
+  if (pct < 50) return { dot: 'bg-red-500', badge: 'bg-red-50 text-red-600 border-red-200' }
+  if (pct < 80) return { dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600 border-amber-200' }
+  return { dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border-emerald-200' }
+}
+
 function isScheduledOn(habit, date) {
   if (isFlexible(habit)) return true
   if (!habit.days_of_week || habit.days_of_week.length === 0) return true
@@ -340,6 +350,13 @@ export default function Habits() {
     })
   }, [filteredHabits])
 
+  const todayProgress = useMemo(() => {
+    const scheduled = habits.filter((h) => isScheduledToday(h))
+    const done = scheduled.filter((h) => logsToday.has(h.id)).length
+    return { done, total: scheduled.length }
+  }, [habits, logsToday])
+  const todayBucket = pctBucket(todayProgress.done, todayProgress.total)
+
   function renderHabitRow(habit) {
     const done = logsToday.has(habit.id)
     const scheduledToday = isScheduledToday(habit)
@@ -436,6 +453,13 @@ export default function Habits() {
           {showAddForm ? 'Fechar' : 'Novo'}
         </button>
       </div>
+
+      {todayBucket && (
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium ${todayBucket.badge}`}>
+          <span className={`w-2 h-2 rounded-full ${todayBucket.dot}`} />
+          {todayProgress.done}/{todayProgress.total} hábitos de hoje concluídos
+        </div>
+      )}
 
       {showAddForm && (
         <form onSubmit={addHabit} className="space-y-3 bg-white border border-slate-200 rounded-xl p-3">

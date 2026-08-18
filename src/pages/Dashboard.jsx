@@ -28,6 +28,16 @@ function fmtShort(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
 }
 
+// Marcador de conclusão dos hábitos do dia: começa vermelho (poucos feitos) e
+// vai passando por amarelo até chegar em verde conforme os check-ins avançam.
+function pctBucket(done, total) {
+  if (!total) return null
+  const pct = (done / total) * 100
+  if (pct < 50) return { dot: 'bg-red-500', ring: 'ring-red-100', badge: 'bg-red-50 text-red-600' }
+  if (pct < 80) return { dot: 'bg-amber-500', ring: 'ring-amber-100', badge: 'bg-amber-50 text-amber-600' }
+  return { dot: 'bg-emerald-500', ring: 'ring-emerald-100', badge: 'bg-emerald-50 text-emerald-600' }
+}
+
 export default function Dashboard() {
   const [build, setBuild] = useState({ done: 0, total: 0 })
   const [avoid, setAvoid] = useState({ done: 0, total: 0 })
@@ -144,6 +154,9 @@ export default function Dashboard() {
     return items.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
   }, [weekTasks, weekEvents])
 
+  const buildBucket = pctBucket(build.done, build.total)
+  const avoidBucket = pctBucket(avoid.done, avoid.total)
+
   return (
     <div className="h-full overflow-y-auto safe-scroll py-5 space-y-6">
       <div>
@@ -169,16 +182,32 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link to="/habitos" className="block bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300">
-          <p className="text-xs text-slate-400 mb-1">Hábitos a fazer</p>
+        <Link
+          to="/habitos"
+          className={`block bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 ${
+            buildBucket ? `ring-2 ${buildBucket.ring}` : ''
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-slate-400">Hábitos a fazer</p>
+            {buildBucket && <span className={`w-2.5 h-2.5 rounded-full ${buildBucket.dot}`} />}
+          </div>
           <p className="text-2xl font-semibold text-slate-900">
             {build.done}/{build.total}
           </p>
           <p className="text-xs text-slate-500 mt-1">cumpridos hoje</p>
         </Link>
 
-        <Link to="/habitos" className="block bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300">
-          <p className="text-xs text-slate-400 mb-1">Hábitos a evitar</p>
+        <Link
+          to="/habitos"
+          className={`block bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 ${
+            avoidBucket ? `ring-2 ${avoidBucket.ring}` : ''
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-slate-400">Hábitos a evitar</p>
+            {avoidBucket && <span className={`w-2.5 h-2.5 rounded-full ${avoidBucket.dot}`} />}
+          </div>
           <p className="text-2xl font-semibold text-slate-900">
             {avoid.done}/{avoid.total}
           </p>
