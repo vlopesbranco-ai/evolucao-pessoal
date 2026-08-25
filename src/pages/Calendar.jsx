@@ -169,7 +169,7 @@ export default function CalendarPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-4">
+        <div className="lg:col-span-2 bg-white border border-slate-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={() => setMonthCursor(new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1))}
@@ -210,7 +210,7 @@ export default function CalendarPage() {
                 <button
                   key={dateStr}
                   onClick={() => setSelectedDate(dateStr)}
-                  className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${
+                  className={`aspect-square text-xs flex flex-col items-center justify-center gap-0.5 border ${
                     isSelected
                       ? 'border-brand-600 bg-brand-600 text-white'
                       : isToday
@@ -224,7 +224,7 @@ export default function CalendarPage() {
                   <span className="flex gap-0.5 flex-wrap justify-center max-w-[24px]">
                     {dayTasks.length > 0 && (
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
+                        className={`w-1.5 h-1.5 ${
                           isSelected ? 'bg-white' : dayTasks.some((t) => daysLate(t) > 0) ? 'bg-red-500' : 'bg-sky-500'
                         }`}
                       />
@@ -232,14 +232,14 @@ export default function CalendarPage() {
                     {eventCategoriesToday.map((cat) => (
                       <span
                         key={cat}
-                        className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : categoryInfo(cat).dot}`}
+                        className={`w-1.5 h-1.5 ${isSelected ?'bg-white': categoryInfo(cat).dot}`}
                       />
                     ))}
                     {dayImportant.length > 0 && (
-                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-rose-500'}`} />
+                      <span className={`w-1.5 h-1.5 ${isSelected ?'bg-white':'bg-rose-500'}`} />
                     )}
                     {dayPodcasts.length > 0 && (
-                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal-500'}`} />
+                      <span className={`w-1.5 h-1.5 ${isSelected ?'bg-white':'bg-teal-500'}`} />
                     )}
                   </span>
                 </button>
@@ -248,26 +248,26 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex flex-wrap gap-3 mt-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500" /> Tarefa</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Tarefa atrasada</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500" /> Data importante</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> Podcast</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-sky-500"/> Tarefa</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500"/> Tarefa atrasada</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-rose-500"/> Data importante</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 bg-teal-500"/> Podcast</span>
             {EVENT_CATEGORIES.map((c) => (
               <span key={c.value} className="flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${c.dot}`} /> {c.label}
+                <span className={`w-2 h-2 ${c.dot}`} /> {c.label}
               </span>
             ))}
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+          <div className="bg-white border border-slate-200 p-4 space-y-3">
             <p className="text-sm font-medium text-slate-800">{fmt(selectedDate)}</p>
 
             {selectedImportant.length > 0 && (
               <ul className="space-y-1">
                 {selectedImportant.map((imp) => (
-                  <li key={imp.id} className="text-xs text-rose-600 bg-rose-50 rounded-lg px-2 py-1">
+                  <li key={imp.id} className="text-xs text-rose-600 bg-rose-50 px-2 py-1">
                     🎉 {imp.title}
                   </li>
                 ))}
@@ -280,7 +280,7 @@ export default function CalendarPage() {
                   <li key={p.id}>
                     <Link
                       to="/conteudo"
-                      className="block text-xs text-teal-700 bg-teal-50 rounded-lg px-2 py-1 hover:bg-teal-100"
+                      className="block text-xs text-teal-700 bg-teal-50 px-2 py-1 hover:bg-teal-100"
                     >
                       🎙️ {p.title} lança hoje
                     </Link>
@@ -294,7 +294,7 @@ export default function CalendarPage() {
                 {selectedEvents.map((ev) => {
                   const info = categoryInfo(ev.category)
                   return (
-                    <li key={ev.id} className={`flex items-start justify-between gap-2 text-xs rounded-lg px-2 py-1.5 ${info.bg}`}>
+                    <li key={ev.id} className={`flex items-start justify-between gap-2 text-xs px-2 py-1.5 ${info.bg}`}>
                       <div className={info.text}>
                         <span>
                           {info.emoji} {ev.title}
@@ -322,7 +322,7 @@ export default function CalendarPage() {
                   return (
                     <li
                       key={t.id}
-                      className={`flex items-start justify-between gap-2 text-xs rounded-lg px-2 py-1.5 ${
+                      className={`flex items-start justify-between gap-2 text-xs px-2 py-1.5 ${
                         late > 0 ? 'bg-red-50' : 'bg-sky-50'
                       }`}
                     >
@@ -331,7 +331,7 @@ export default function CalendarPage() {
                         <span className={t.done ? 'line-through text-slate-400' : late > 0 ? 'text-red-700' : 'text-sky-700'}>
                           {t.title}
                           {late > 0 && (
-                            <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-medium align-middle">
+                            <span className="ml-1.5 inline-block px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-medium align-middle">
                               atrasada {late}d
                             </span>
                           )}
@@ -350,7 +350,7 @@ export default function CalendarPage() {
             <div className="flex gap-1 text-xs pt-2 border-t border-slate-100">
               <button
                 onClick={() => setAddMode('task')}
-                className={`flex-1 py-1.5 rounded-lg border ${
+                className={`flex-1 py-1.5 border ${
                   addMode === 'task' ? 'bg-sky-500 text-white border-sky-500' : 'border-slate-300 text-slate-500'
                 }`}
               >
@@ -358,7 +358,7 @@ export default function CalendarPage() {
               </button>
               <button
                 onClick={() => setAddMode('event')}
-                className={`flex-1 py-1.5 rounded-lg border ${
+                className={`flex-1 py-1.5 border ${
                   addMode === 'event' ? 'bg-violet-500 text-white border-violet-500' : 'border-slate-300 text-slate-500'
                 }`}
               >
@@ -372,15 +372,15 @@ export default function CalendarPage() {
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
                   placeholder="Nova tarefa nesse dia"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 px-3 py-2 text-sm"
                 />
                 <input
                   value={taskNote}
                   onChange={(e) => setTaskNote(e.target.value)}
                   placeholder="Nota (opcional)"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 px-3 py-2 text-sm"
                 />
-                <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+                <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                   Adicionar tarefa
                 </button>
               </form>
@@ -390,7 +390,7 @@ export default function CalendarPage() {
                   value={eventTitle}
                   onChange={(e) => setEventTitle(e.target.value)}
                   placeholder="Nome do evento"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 px-3 py-2 text-sm"
                 />
                 <div className="flex flex-wrap gap-1">
                   {EVENT_CATEGORIES.map((c) => (
@@ -398,7 +398,7 @@ export default function CalendarPage() {
                       type="button"
                       key={c.value}
                       onClick={() => setEventCategory(c.value)}
-                      className={`px-2.5 py-1 rounded-full text-xs border ${
+                      className={`px-2.5 py-1 text-xs border ${
                         eventCategory === c.value
                           ? 'bg-brand-600 text-white border-brand-600'
                           : 'border-slate-300 text-slate-500'
@@ -415,7 +415,7 @@ export default function CalendarPage() {
                     value={eventEnd}
                     onChange={(e) => setEventEnd(e.target.value)}
                     min={selectedDate}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm mt-1"
+                    className="w-full border border-slate-300 px-3 py-2 text-sm mt-1"
                   />
                 </div>
                 <textarea
@@ -423,16 +423,16 @@ export default function CalendarPage() {
                   onChange={(e) => setEventNote(e.target.value)}
                   placeholder="Anotação (opcional)"
                   rows={2}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 px-3 py-2 text-sm"
                 />
-                <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+                <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                   Adicionar evento
                 </button>
               </form>
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-slate-200 p-4">
             <p className="text-sm font-medium text-slate-800 mb-2">Próximas tarefas</p>
             {loading ? (
               <p className="text-xs text-slate-400">Carregando...</p>

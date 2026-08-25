@@ -62,7 +62,7 @@ export default function Heatmap({ data, weeks = 16, colors = DEFAULT_COLORS, max
             <div
               key={day.dateStr}
               title={day.title}
-              className={`w-3 h-3 rounded-sm ${day.isFuture ? 'bg-transparent' : day.colorClass}`}
+              className={`w-3 h-3 ${day.isFuture ?'bg-transparent': day.colorClass}`}
             />
           ))}
         </div>

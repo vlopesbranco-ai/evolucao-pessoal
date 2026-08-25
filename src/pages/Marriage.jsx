@@ -398,19 +398,19 @@ export default function Marriage() {
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white border border-slate-200 rounded-xl p-3">
+                <div className="bg-white border border-slate-200 p-3">
                   <p className="text-xs text-slate-400">Média/semana</p>
                   <p className="text-xl font-semibold text-slate-900">{stats.avgPerWeek}</p>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-3">
+                <div className="bg-white border border-slate-200 p-3">
                   <p className="text-xs text-slate-400">Média/mês</p>
                   <p className="text-xl font-semibold text-slate-900">{stats.avgPerMonth}</p>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-3">
+                <div className="bg-white border border-slate-200 p-3">
                   <p className="text-xs text-slate-400">Maior intervalo</p>
                   <p className="text-xl font-semibold text-slate-900">{stats.longestGap}d</p>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-xl p-3">
+                <div className="bg-white border border-slate-200 p-3">
                   <p className="text-xs text-slate-400">Desde o último</p>
                   <p className="text-xl font-semibold text-slate-900">{stats.daysSinceLast}d</p>
                 </div>
@@ -420,7 +420,7 @@ export default function Marriage() {
                 Sexo oral registrado em {stats.oralCount} de {stats.total} registros.
               </p>
 
-              <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="bg-white border border-slate-200 p-4">
                 <p className="text-sm font-medium text-slate-700 mb-3">Frequência por mês (últimos 12 meses)</p>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={monthlyChartData}>
@@ -432,13 +432,13 @@ export default function Marriage() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="bg-white border border-slate-200 p-4">
                 <p className="text-sm font-medium text-slate-700 mb-3">Últimas 16 semanas</p>
                 <Heatmap data={heatmapData} weeks={16} />
               </div>
 
               {(stats.withProtection > 0 || stats.withoutProtection > 0) && (
-                <div className="bg-white border border-slate-200 rounded-xl p-4 text-sm text-slate-600">
+                <div className="bg-white border border-slate-200 p-4 text-sm text-slate-600">
                   <p className="font-medium text-slate-700 mb-1">Proteção</p>
                   <p>
                     Com proteção: <span className="font-semibold">{stats.withProtection}</span> · Sem proteção:{' '}
@@ -448,7 +448,7 @@ export default function Marriage() {
               )}
 
               {cycleInsights && (
-                <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-1">
+                <div className="bg-white border border-slate-200 p-4 space-y-1">
                   <p className="text-xs text-slate-400">Estimativa de ciclo</p>
                   <p className="text-sm text-slate-700">
                     Duração média: <span className="font-semibold">{cycleInsights.avgCycleLength} dias</span> · Próximo
@@ -470,7 +470,7 @@ export default function Marriage() {
 
       {tab === 'calendario' && (
         <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-slate-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setCalMonthCursor(new Date(calMonthCursor.getFullYear(), calMonthCursor.getMonth() - 1, 1))}
@@ -523,7 +523,7 @@ export default function Marriage() {
                   <button
                     key={dateStr}
                     onClick={() => setCalSelectedDate(dateStr)}
-                    className={`relative aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border ${bg} ${textColor} ${
+                    className={`relative aspect-square text-xs flex flex-col items-center justify-center gap-0.5 border ${bg} ${textColor} ${
                       isSelected
                         ? 'border-brand-600 ring-2 ring-brand-600'
                         : isToday
@@ -544,30 +544,30 @@ export default function Marriage() {
             </div>
 
             <div className="flex flex-wrap gap-3 mt-4 text-xs text-slate-500">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-500" /> Período registrado</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-pink-100 border border-pink-300" /> Período previsto</span>
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-purple-100 border border-purple-300" /> Janela fértil</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-500"/> Período registrado</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-100 border border-pink-300"/> Período previsto</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-100 border border-purple-300"/> Janela fértil</span>
               <span className="flex items-center gap-1">❤️ Relação</span>
               <span className="flex items-center gap-1">💜 Outra intimidade</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+          <div className="bg-white border border-slate-200 p-4 space-y-2">
             <p className="text-sm font-medium text-slate-800">{fmt(calSelectedDate)}</p>
             {calPeriodOn(calSelectedDate) === 'registrado' && (
-              <p className="text-xs text-pink-700 bg-pink-50 rounded-lg px-2 py-1">🩸 Dia de período registrado</p>
+              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">🩸 Dia de período registrado</p>
             )}
             {calPeriodOn(calSelectedDate) === 'previsto' && (
-              <p className="text-xs text-pink-700 bg-pink-50 rounded-lg px-2 py-1">🩸 Dia de período previsto (estimativa)</p>
+              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">🩸 Dia de período previsto (estimativa)</p>
             )}
             {calFertileOn(calSelectedDate) && (
-              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">🌸 Janela fértil estimada</p>
+              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">🌸 Janela fértil estimada</p>
             )}
             {calRegularIntimacyOn(calSelectedDate) && (
-              <p className="text-xs text-red-700 bg-red-50 rounded-lg px-2 py-1">❤️ Relação registrada</p>
+              <p className="text-xs text-red-700 bg-red-50 px-2 py-1">❤️ Relação registrada</p>
             )}
             {calOralOnlyOn(calSelectedDate) && (
-              <p className="text-xs text-purple-700 bg-purple-50 rounded-lg px-2 py-1">💜 Outra intimidade registrada</p>
+              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">💜 Outra intimidade registrada</p>
             )}
             {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-slate-400">Nenhum registro nesse dia.</p>
@@ -586,12 +586,12 @@ export default function Marriage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-700">Ciclo da esposa</h2>
-            <form onSubmit={addCycle} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+            <form onSubmit={addCycle} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 type="date"
                 value={cycleDate}
                 onChange={(e) => setCycleDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <label htmlFor="periodLength">Duração do período (dias)</label>
@@ -602,16 +602,16 @@ export default function Marriage() {
                   max={14}
                   value={cyclePeriodLength}
                   onChange={(e) => setCyclePeriodLength(Number(e.target.value) || 5)}
-                  className="w-16 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  className="w-16 border border-slate-300 px-2 py-1 text-sm"
                 />
               </div>
               <input
                 value={cycleNote}
                 onChange={(e) => setCycleNote(e.target.value)}
                 placeholder="Nota (opcional)"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+              <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Registrar início de ciclo
               </button>
             </form>
@@ -629,21 +629,21 @@ export default function Marriage() {
                   return (
                     <li
                       key={c.id}
-                      className="text-xs text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-2"
+                      className="text-xs text-slate-600 bg-white border border-slate-200 px-3 py-2"
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           {c.cycle_end ? (
                             <p className="font-medium">
                               Início: {fmt(c.cycle_start)} · Fim: {fmt(c.cycle_end)} ({realLength}d){' '}
-                              <span className="ml-1 inline-block px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-normal align-middle">
+                              <span className="ml-1 inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-normal align-middle">
                                 confirmado
                               </span>
                             </p>
                           ) : (
                             <p className="font-medium">
                               Início: {fmt(c.cycle_start)} · dura ~{c.period_length ?? 5}d{' '}
-                              <span className="ml-1 inline-block px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-normal align-middle">
+                              <span className="ml-1 inline-block px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-normal align-middle">
                                 estimado
                               </span>
                             </p>
@@ -662,7 +662,7 @@ export default function Marriage() {
                             value={cycleEndValue}
                             min={c.cycle_start}
                             onChange={(e) => setCycleEndValue(e.target.value)}
-                            className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+                            className="border border-slate-300 px-2 py-1 text-xs"
                           />
                           <button
                             onClick={() => saveCycleEnd(c.id)}
@@ -700,18 +700,18 @@ export default function Marriage() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-700">Atividade íntima</h2>
-            <form onSubmit={addIntimacy} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+            <form onSubmit={addIntimacy} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 type="date"
                 value={intimacyDate}
                 onChange={(e) => setIntimacyDate(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
               <div className="flex gap-1 text-xs">
                 <button
                   type="button"
                   onClick={() => setIntimacyType('sexo')}
-                  className={`flex-1 px-3 py-1.5 rounded-full border ${
+                  className={`flex-1 px-3 py-1.5 border ${
                     intimacyType === 'sexo' ? 'bg-red-500 text-white border-red-500' : 'border-slate-300 text-slate-500'
                   }`}
                 >
@@ -720,7 +720,7 @@ export default function Marriage() {
                 <button
                   type="button"
                   onClick={() => setIntimacyType('oral')}
-                  className={`flex-1 px-3 py-1.5 rounded-full border ${
+                  className={`flex-1 px-3 py-1.5 border ${
                     intimacyType === 'oral' ? 'bg-purple-500 text-white border-purple-500' : 'border-slate-300 text-slate-500'
                   }`}
                 >
@@ -732,7 +732,7 @@ export default function Marriage() {
                   <button
                     type="button"
                     onClick={() => setUsedProtection(true)}
-                    className={`flex-1 px-3 py-1.5 rounded-full border ${
+                    className={`flex-1 px-3 py-1.5 border ${
                       usedProtection ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
                     }`}
                   >
@@ -741,7 +741,7 @@ export default function Marriage() {
                   <button
                     type="button"
                     onClick={() => setUsedProtection(false)}
-                    className={`flex-1 px-3 py-1.5 rounded-full border ${
+                    className={`flex-1 px-3 py-1.5 border ${
                       !usedProtection ? 'bg-amber-500 text-white border-amber-500' : 'border-slate-300 text-slate-500'
                     }`}
                   >
@@ -753,9 +753,9 @@ export default function Marriage() {
                 value={intimacyNote}
                 onChange={(e) => setIntimacyNote(e.target.value)}
                 placeholder="Nota (opcional)"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+              <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Registrar
               </button>
             </form>
@@ -768,7 +768,7 @@ export default function Marriage() {
                 {intimacyLogs.slice(0, 30).map((i) => (
                   <li
                     key={i.id}
-                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
+                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 px-3 py-2"
                   >
                     <div>
                       <p className="font-medium">
@@ -783,7 +783,7 @@ export default function Marriage() {
                               {i.used_protection ? '· com proteção' : '· sem proteção'}
                             </span>
                             {i.oral && (
-                              <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-600 text-[10px] font-medium align-middle">
+                              <span className="ml-1.5 inline-block px-1.5 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-medium align-middle">
                                 + outra
                               </span>
                             )}
@@ -805,19 +805,19 @@ export default function Marriage() {
 
       {tab === 'humor' && (
         <div className="space-y-4">
-          <form onSubmit={addMood} className="space-y-3 bg-white border border-slate-200 rounded-xl p-3">
+          <form onSubmit={addMood} className="space-y-3 bg-white border border-slate-200 p-3">
             <div className="flex gap-2">
               <input
                 type="date"
                 value={moodDate}
                 onChange={(e) => setMoodDate(e.target.value)}
-                className="w-36 shrink-0 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-36 shrink-0 min-w-0 border border-slate-300 px-3 py-2 text-sm"
               />
               <input
                 value={moodNote}
                 onChange={(e) => setMoodNote(e.target.value)}
                 placeholder="Nota (opcional)"
-                className="flex-1 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="flex-1 min-w-0 border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
             <div className="flex gap-2 justify-between">
@@ -827,7 +827,7 @@ export default function Marriage() {
                   key={m.value}
                   onClick={() => setMoodValue(m.value)}
                   title={m.label}
-                  className={`flex-1 text-2xl py-2 rounded-lg border ${
+                  className={`flex-1 text-2xl py-2 border ${
                     moodValue === m.value ? 'border-brand-600 bg-brand-50' : 'border-transparent hover:bg-slate-50'
                   }`}
                 >
@@ -835,13 +835,13 @@ export default function Marriage() {
                 </button>
               ))}
             </div>
-            <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+            <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
               Registrar humor de hoje
             </button>
           </form>
 
           {moodChartData.length >= 2 && (
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
+            <div className="bg-white border border-slate-200 p-4">
               <p className="text-sm font-medium text-slate-700 mb-3">Tendência (últimos registros)</p>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={moodChartData}>
@@ -864,7 +864,7 @@ export default function Marriage() {
               {moods.map((m) => (
                 <li
                   key={m.id}
-                  className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
+                  className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 px-3 py-2"
                 >
                   <div>
                     <p className="font-medium">
@@ -887,18 +887,18 @@ export default function Marriage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-700">Datas importantes</h2>
-            <form onSubmit={addDate} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+            <form onSubmit={addDate} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 value={dateTitle}
                 onChange={(e) => setDateTitle(e.target.value)}
                 placeholder="Título (ex: Aniversário dela)"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
               <input
                 type="date"
                 value={dateValue}
                 onChange={(e) => setDateValue(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
               <label className="flex items-center gap-2 text-xs text-slate-500">
                 <input type="checkbox" checked={dateRecurring} onChange={(e) => setDateRecurring(e.target.checked)} />
@@ -908,9 +908,9 @@ export default function Marriage() {
                 value={dateNote}
                 onChange={(e) => setDateNote(e.target.value)}
                 placeholder="Nota (opcional)"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+              <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Adicionar
               </button>
             </form>
@@ -921,7 +921,7 @@ export default function Marriage() {
                 {upcomingDates.map((d) => (
                   <li
                     key={d.id}
-                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
+                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 px-3 py-2"
                   >
                     <div>
                       <p className="font-medium">{d.title}</p>
@@ -941,14 +941,14 @@ export default function Marriage() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-slate-700">Anotações</h2>
-            <form onSubmit={addNote} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+            <form onSubmit={addNote} className="space-y-2 bg-white border border-slate-200 p-3">
               <div className="flex flex-wrap gap-1">
                 {NOTE_CATEGORIES.map((c) => (
                   <button
                     type="button"
                     key={c.value}
                     onClick={() => setNoteCategory(c.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs border ${
+                    className={`px-3 py-1.5 text-xs border ${
                       noteCategory === c.value
                         ? 'bg-brand-600 text-white border-brand-600'
                         : 'border-slate-300 text-slate-500'
@@ -963,9 +963,9 @@ export default function Marriage() {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Escreva aqui..."
                 rows={3}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="w-full border border-slate-300 px-3 py-2 text-sm"
               />
-              <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+              <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
                 Salvar anotação
               </button>
             </form>
@@ -976,7 +976,7 @@ export default function Marriage() {
                 {notes.map((n) => (
                   <li
                     key={n.id}
-                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 rounded-lg px-3 py-2"
+                    className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 px-3 py-2"
                   >
                     <div>
                       <p className="text-slate-400">{NOTE_CATEGORIES.find((c) => c.value === n.category)?.label}</p>

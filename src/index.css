@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
+/* Paleta "Modernist": vermelho tijolo como cor de marca, no lugar do indigo. */
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
+  --color-brand-50: #fef2f0;
+  --color-brand-100: #fde2dd;
+  --color-brand-200: #fac5bb;
+  --color-brand-300: #f49c8a;
+  --color-brand-400: #ea6b52;
+  --color-brand-500: #dc4429;
+  --color-brand-600: #c22e17;
+  --color-brand-700: #9e2412;
+  --color-brand-800: #7c1d10;
+  --color-brand-900: #5c150c;
 }
 
 /* O documento (html/body) fica travado no viewport visual e nunca rola.

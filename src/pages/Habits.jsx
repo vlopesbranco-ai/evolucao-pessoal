@@ -82,7 +82,7 @@ function CategoryPicker({ value, onChange }) {
       <select
         value={isCustom ? '__custom__' : value || ''}
         onChange={(e) => onChange(e.target.value === '__custom__' ? ' ' : e.target.value)}
-        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+        className="flex-1 border border-slate-300 px-3 py-2 text-sm bg-white"
       >
         <option value="">Sem categoria</option>
         {SUGGESTED_CATEGORIES.map((c) => (
@@ -97,7 +97,7 @@ function CategoryPicker({ value, onChange }) {
           value={value.trim()}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Nome da categoria"
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="flex-1 border border-slate-300 px-3 py-2 text-sm"
           autoFocus
         />
       )}
@@ -111,7 +111,7 @@ function SchedulePicker({ f, setF }) {
       <select
         value={f.scheduleMode}
         onChange={(e) => setF({ ...f, scheduleMode: e.target.value })}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+        className="w-full border border-slate-300 px-3 py-2 text-sm bg-white"
       >
         <option value="daily">Todo dia</option>
         <option value="days">Dias específicos</option>
@@ -131,7 +131,7 @@ function SchedulePicker({ f, setF }) {
                     : [...f.days_of_week, d.value].sort(),
                 })
               }
-              className={`w-8 h-8 rounded-full text-xs border ${
+              className={`w-8 h-8 text-xs border ${
                 f.days_of_week.includes(d.value)
                   ? 'bg-brand-600 text-white border-brand-600'
                   : 'border-slate-300 text-slate-500 hover:border-slate-400'
@@ -147,7 +147,7 @@ function SchedulePicker({ f, setF }) {
           <button
             type="button"
             onClick={() => setF({ ...f, times_per_week: Math.max(1, f.times_per_week - 1) })}
-            className="w-8 h-8 rounded-full border border-slate-300 hover:border-slate-400"
+            className="w-8 h-8 border border-slate-300 hover:border-slate-400"
           >
             −
           </button>
@@ -155,7 +155,7 @@ function SchedulePicker({ f, setF }) {
           <button
             type="button"
             onClick={() => setF({ ...f, times_per_week: Math.min(7, f.times_per_week + 1) })}
-            className="w-8 h-8 rounded-full border border-slate-300 hover:border-slate-400"
+            className="w-8 h-8 border border-slate-300 hover:border-slate-400"
           >
             +
           </button>
@@ -171,7 +171,7 @@ function HabitTypeToggle({ value, onChange }) {
       <button
         type="button"
         onClick={() => onChange('build')}
-        className={`flex-1 px-3 py-1.5 rounded-lg border ${
+        className={`flex-1 px-3 py-1.5 border ${
           value === 'build' ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 text-slate-500'
         }`}
       >
@@ -180,7 +180,7 @@ function HabitTypeToggle({ value, onChange }) {
       <button
         type="button"
         onClick={() => onChange('avoid')}
-        className={`flex-1 px-3 py-1.5 rounded-lg border ${
+        className={`flex-1 px-3 py-1.5 border ${
           value === 'avoid' ? 'bg-red-500 text-white border-red-500' : 'border-slate-300 text-slate-500'
         }`}
       >
@@ -364,11 +364,11 @@ export default function Habits() {
 
     if (isEditing) {
       return (
-        <li key={habit.id} className="bg-white border border-slate-300 rounded-xl p-3 space-y-3">
+        <li key={habit.id} className="bg-white border border-slate-300 p-3 space-y-3">
           <input
             value={editForm.name}
             onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full border border-slate-300 px-3 py-2 text-sm"
           />
           <CategoryPicker value={editForm.category} onChange={(c) => setEditForm({ ...editForm, category: c })} />
           <HabitTypeToggle value={editForm.habit_type} onChange={(v) => setEditForm({ ...editForm, habit_type: v })} />
@@ -379,7 +379,7 @@ export default function Habits() {
             </button>
             <button
               onClick={() => saveEdit(habit.id)}
-              className="rounded-lg bg-brand-600 text-white px-4 py-2 text-xs font-medium hover:bg-brand-700"
+              className="bg-brand-600 text-white px-4 py-2 text-xs font-medium hover:bg-brand-700"
             >
               Salvar
             </button>
@@ -391,7 +391,7 @@ export default function Habits() {
     return (
       <li
         key={habit.id}
-        className={`flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 ${
+        className={`flex items-center justify-between bg-white border border-slate-200 px-4 py-3 ${
           !scheduledToday ? 'opacity-50' : ''
         }`}
       >
@@ -399,7 +399,7 @@ export default function Habits() {
           <button
             onClick={() => scheduledToday && toggleToday(habit)}
             disabled={!scheduledToday}
-            className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${
+            className={`w-6 h-6 border flex items-center justify-center text-xs shrink-0 ${
               done
                 ? habit.habit_type === 'avoid'
                   ? 'bg-red-500 border-red-500 text-white'
@@ -445,7 +445,7 @@ export default function Habits() {
         </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
-          className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium ${
+          className={`flex items-center gap-1 px-3 py-2 text-sm font-medium ${
             showAddForm ? 'bg-slate-100 text-slate-600' : 'bg-brand-600 text-white hover:bg-brand-700'
           }`}
         >
@@ -455,25 +455,25 @@ export default function Habits() {
       </div>
 
       {todayBucket && (
-        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium ${todayBucket.badge}`}>
-          <span className={`w-2 h-2 rounded-full ${todayBucket.dot}`} />
+        <div className={`flex items-center gap-2 border px-3 py-2 text-xs font-medium ${todayBucket.badge}`}>
+          <span className={`w-2 h-2 ${todayBucket.dot}`} />
           {todayProgress.done}/{todayProgress.total} hábitos de hoje concluídos
         </div>
       )}
 
       {showAddForm && (
-        <form onSubmit={addHabit} className="space-y-3 bg-white border border-slate-200 rounded-xl p-3">
+        <form onSubmit={addHabit} className="space-y-3 bg-white border border-slate-200 p-3">
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Nome (ex: Meditar 10min, Academia)"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full border border-slate-300 px-3 py-2 text-sm"
             autoFocus
           />
           <CategoryPicker value={form.category} onChange={(c) => setForm({ ...form, category: c })} />
           <HabitTypeToggle value={form.habit_type} onChange={(v) => setForm({ ...form, habit_type: v })} />
           <SchedulePicker f={form} setF={setForm} />
-          <button className="w-full rounded-lg bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700">
+          <button className="w-full bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar
           </button>
         </form>
@@ -483,7 +483,7 @@ export default function Habits() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+          className="border border-slate-300 px-3 py-2 text-sm bg-white"
         >
           {categories.map((c) => (
             <option key={c} value={c}>

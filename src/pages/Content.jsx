@@ -173,26 +173,26 @@ export default function Content() {
 
       {/* ---------- Fila: quero ver/ler ---------- */}
       <section className="space-y-3">
-        <form onSubmit={addQueueItem} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+        <form onSubmit={addQueueItem} className="space-y-2 bg-white border border-slate-200 p-3">
           <div className="flex flex-wrap gap-2">
             <input
               value={queueTitle}
               onChange={(e) => setQueueTitle(e.target.value)}
               placeholder="Nome do filme, série, livro..."
-              className="flex-1 min-w-[200px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="flex-1 min-w-[200px] border border-slate-300 px-3 py-2 text-sm"
             />
             <input
               value={queueNote}
               onChange={(e) => setQueueNote(e.target.value)}
               placeholder="Onde assistir / nota (opcional)"
-              className="w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-48 border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={queueCategory}
               onChange={(e) => setQueueCategory(e.target.value)}
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+              className="flex-1 border border-slate-300 px-3 py-2 text-sm bg-white"
             >
               {CONTENT_TYPES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -203,7 +203,7 @@ export default function Content() {
             <select
               value={queueGenre}
               onChange={(e) => setQueueGenre(e.target.value)}
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"
+              className="flex-1 border border-slate-300 px-3 py-2 text-sm bg-white"
             >
               <option value="">Sem gênero</option>
               {GENRES.map((g) => (
@@ -213,7 +213,7 @@ export default function Content() {
               ))}
             </select>
           </div>
-          <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+          <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar à fila
           </button>
         </form>
@@ -222,7 +222,7 @@ export default function Content() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="flex-1 min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
+            className="flex-1 min-w-0 border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
           >
             <option value="todos">Todos os tipos</option>
             {CONTENT_TYPES.map((c) => (
@@ -234,7 +234,7 @@ export default function Content() {
           <select
             value={filterGenre}
             onChange={(e) => setFilterGenre(e.target.value)}
-            className="flex-1 min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
+            className="flex-1 min-w-0 border border-slate-300 px-2 py-1.5 text-xs bg-white text-slate-600"
           >
             <option value="todos">Todos os gêneros</option>
             {GENRES.map((g) => (
@@ -252,14 +252,14 @@ export default function Content() {
           </label>
           <button
             onClick={pickSuggestion}
-            className="text-xs px-3 py-1.5 rounded-full border border-slate-300 text-slate-600 hover:border-slate-400"
+            className="text-xs px-3 py-1.5 border border-slate-300 text-slate-600 hover:border-slate-400"
           >
             🎲 Sugerir algo
           </button>
         </div>
 
         {suggestion && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-sm text-indigo-700">
+          <div className="bg-brand-50 border border-brand-200 p-3 text-sm text-brand-700">
             {typeInfo(suggestion.category).emoji} Que tal: <span className="font-medium">{suggestion.title}</span>
             {suggestion.genre && ` (${genreLabel(suggestion.genre)})`}?
           </div>
@@ -276,11 +276,11 @@ export default function Content() {
         ) : (
           <ul className="space-y-2">
             {queueItems.map((item) => (
-              <li key={item.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3">
+              <li key={item.id} className="flex items-center justify-between bg-white border border-slate-200 px-4 py-3">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleWatched(item)}
-                    className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${
+                    className={`w-6 h-6 border flex items-center justify-center text-xs shrink-0 ${
                       item.watched ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 text-transparent hover:border-slate-400'
                     }`}
                   >
@@ -306,18 +306,18 @@ export default function Content() {
       {/* ---------- Podcasts ---------- */}
       <section className="space-y-3 pt-4 border-t border-slate-100">
         <h2 className="text-sm font-medium text-slate-700">Podcasts</h2>
-        <form onSubmit={addPodcast} className="space-y-2 bg-white border border-slate-200 rounded-xl p-3">
+        <form onSubmit={addPodcast} className="space-y-2 bg-white border border-slate-200 p-3">
           <div className="flex flex-wrap gap-2">
             <input
               value={podcastTitle}
               onChange={(e) => setPodcastTitle(e.target.value)}
               placeholder="Nome do podcast"
-              className="flex-1 min-w-[180px] rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="flex-1 min-w-[180px] border border-slate-300 px-3 py-2 text-sm"
             />
             <select
               value={podcastWeekday}
               onChange={(e) => setPodcastWeekday(Number(e.target.value))}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="border border-slate-300 px-3 py-2 text-sm"
             >
               {WEEKDAYS.map((d) => (
                 <option key={d.value} value={d.value}>
@@ -330,15 +330,15 @@ export default function Content() {
             value={podcastNote}
             onChange={(e) => setPodcastNote(e.target.value)}
             placeholder="Nota (opcional, ex: onde ouvir)"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            className="w-full border border-slate-300 px-3 py-2 text-sm"
           />
-          <button className="w-full rounded-lg bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
+          <button className="w-full bg-brand-600 text-white py-2 text-sm font-medium hover:bg-brand-700">
             Adicionar podcast
           </button>
         </form>
 
         {releasingToday.length > 0 && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm text-emerald-700">
+          <div className="bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700">
             🎧 Hoje tem episódio novo de: {releasingToday.map((p) => p.title).join(', ')}
           </div>
         )}
@@ -352,7 +352,7 @@ export default function Content() {
             {[...podcasts]
               .sort((a, b) => a.release_weekday - b.release_weekday)
               .map((p) => (
-                <li key={p.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3">
+                <li key={p.id} className="flex items-center justify-between bg-white border border-slate-200 px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-slate-800">🎙️ {p.title}</p>
                     <p className="text-xs text-slate-400">
