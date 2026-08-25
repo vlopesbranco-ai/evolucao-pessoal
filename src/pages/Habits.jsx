@@ -411,7 +411,11 @@ export default function Habits() {
           </button>
           <div className="min-w-0">
             <p className="text-sm font-medium text-slate-800 truncate">
-              {habit.habit_type === 'avoid' ? '🚫 ' : ''}
+              {habit.habit_type === 'avoid' && (
+                <span className="inline-block border border-red-600 text-red-600 text-[9px] font-semibold px-1 py-0.5 uppercase tracking-wide mr-1.5 align-middle">
+                  Evitar
+                </span>
+              )}
               {habit.name}
             </p>
             <p className="text-xs text-slate-400">
@@ -426,7 +430,7 @@ export default function Habits() {
               {weeklyProgress[habit.id] ?? 0}/{habit.times_per_week}
             </span>
           ) : (
-            <span className="text-xs text-slate-500">🔥{streaks[habit.id] ?? 0}</span>
+            <span className="text-xs text-slate-500">seq. {streaks[habit.id] ?? 0}d</span>
           )}
           <button onClick={() => startEdit(habit)} className="text-xs text-slate-400 hover:text-slate-800">
             editar
@@ -440,7 +444,7 @@ export default function Habits() {
     <div className="h-full overflow-y-auto safe-scroll py-5 space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Hábitos</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Hábitos</h1>
           <p className="text-sm text-slate-500">Pra construir e pra evitar, no mesmo lugar.</p>
         </div>
         <button

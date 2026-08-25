@@ -37,7 +37,7 @@ export default function Login() {
         <div className="w-11 h-11 bg-brand-600 text-white flex items-center justify-center text-lg font-semibold mb-4">
           E
         </div>
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">Evolução Pessoal</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-1">Evolução Pessoal</h1>
         <p className="text-sm text-slate-500 mb-6">
           {mode === 'signin' ? 'Entre na sua conta' : 'Crie sua conta'}
         </p>

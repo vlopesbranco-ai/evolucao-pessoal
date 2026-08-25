@@ -164,7 +164,7 @@ export default function CalendarPage() {
   return (
     <div className="h-full overflow-y-auto safe-scroll py-5 space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">Calendário</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Calendário</h1>
         <p className="text-sm text-slate-500">Tarefas, eventos, datas importantes e intimidade, tudo num lugar só.</p>
       </div>
 
@@ -268,7 +268,8 @@ export default function CalendarPage() {
               <ul className="space-y-1">
                 {selectedImportant.map((imp) => (
                   <li key={imp.id} className="text-xs text-rose-600 bg-rose-50 px-2 py-1">
-                    🎉 {imp.title}
+                    <span className="inline-block w-2 h-2 bg-rose-500 mr-1.5 align-middle" />
+                    {imp.title}
                   </li>
                 ))}
               </ul>
@@ -282,7 +283,8 @@ export default function CalendarPage() {
                       to="/conteudo"
                       className="block text-xs text-teal-700 bg-teal-50 px-2 py-1 hover:bg-teal-100"
                     >
-                      🎙️ {p.title} lança hoje
+                      <span className="inline-block w-2 h-2 bg-teal-500 mr-1.5 align-middle" />
+                      {p.title} lança hoje
                     </Link>
                   </li>
                 ))}
@@ -297,7 +299,8 @@ export default function CalendarPage() {
                     <li key={ev.id} className={`flex items-start justify-between gap-2 text-xs px-2 py-1.5 ${info.bg}`}>
                       <div className={info.text}>
                         <span>
-                          {info.emoji} {ev.title}
+                          <span className={`inline-block w-2 h-2 ${info.dot} mr-1.5 align-middle`} />
+                          {ev.title}
                         </span>
                         {ev.end_date && ev.end_date !== ev.start_date && (
                           <span className="block opacity-70">
@@ -404,7 +407,8 @@ export default function CalendarPage() {
                           : 'border-slate-300 text-slate-500'
                       }`}
                     >
-                      {c.emoji} {c.label}
+                      <span className={`inline-block w-2 h-2 ${c.dot} mr-1 align-middle`} />
+                      {c.label}
                     </button>
                   ))}
                 </div>
@@ -433,7 +437,7 @@ export default function CalendarPage() {
           </div>
 
           <div className="bg-white border border-slate-200 p-4">
-            <p className="text-sm font-medium text-slate-800 mb-2">Próximas tarefas</p>
+            <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-2">Próximas tarefas</p>
             {loading ? (
               <p className="text-xs text-slate-400">Carregando...</p>
             ) : upcomingTasks.length === 0 ? (

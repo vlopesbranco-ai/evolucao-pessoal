@@ -5,21 +5,21 @@ import { todayStr } from '../lib/date'
 
 // Categorias selecionáveis no formulário (reduzidas a pedido)
 const CONTENT_TYPES = [
-  { value: 'filme', label: 'Filme', emoji: '🎬' },
-  { value: 'serie', label: 'Série', emoji: '📺' },
-  { value: 'livro', label: 'Livro', emoji: '📚' },
-  { value: 'audiobook', label: 'Audiobook', emoji: '🎧' },
+  { value: 'filme', label: 'Filme', dot: 'bg-sky-500' },
+  { value: 'serie', label: 'Série', dot: 'bg-purple-500' },
+  { value: 'livro', label: 'Livro', dot: 'bg-amber-500' },
+  { value: 'audiobook', label: 'Audiobook', dot: 'bg-emerald-500' },
 ]
 
 // Mantém o mapeamento de categorias antigas só pra exibir itens já cadastrados antes da mudança
 const LEGACY_CONTENT_TYPES = [
-  { value: 'documentario', label: 'Documentário', emoji: '🎥' },
-  { value: 'video', label: 'Vídeo', emoji: '▶️' },
-  { value: 'rede_social', label: 'Rede social', emoji: '📱' },
-  { value: 'artigo', label: 'Artigo', emoji: '📰' },
-  { value: 'curso', label: 'Curso', emoji: '🎓' },
-  { value: 'noticias', label: 'Notícias', emoji: '🗞️' },
-  { value: 'outro', label: 'Outro', emoji: '📌' },
+  { value: 'documentario', label: 'Documentário', dot: 'bg-slate-400' },
+  { value: 'video', label: 'Vídeo', dot: 'bg-slate-400' },
+  { value: 'rede_social', label: 'Rede social', dot: 'bg-slate-400' },
+  { value: 'artigo', label: 'Artigo', dot: 'bg-slate-400' },
+  { value: 'curso', label: 'Curso', dot: 'bg-slate-400' },
+  { value: 'noticias', label: 'Notícias', dot: 'bg-slate-400' },
+  { value: 'outro', label: 'Outro', dot: 'bg-slate-400' },
 ]
 
 const ALL_CONTENT_TYPES = [...CONTENT_TYPES, ...LEGACY_CONTENT_TYPES]
@@ -57,7 +57,7 @@ const WEEKDAYS = [
 ]
 
 function typeInfo(value) {
-  return ALL_CONTENT_TYPES.find((t) => t.value === value) ?? { value, label: 'Outro', emoji: '📌' }
+  return ALL_CONTENT_TYPES.find((t) => t.value === value) ?? { value, label: 'Outro', dot: 'bg-slate-400' }
 }
 
 export default function Content() {
@@ -167,7 +167,7 @@ export default function Content() {
   return (
     <div className="h-full overflow-y-auto safe-scroll py-5 space-y-8">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">Quero ver / ler</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Quero ver / ler</h1>
         <p className="text-sm text-slate-500">Sua fila de filmes, séries, livros e afins, e seus podcasts.</p>
       </div>
 
@@ -196,7 +196,7 @@ export default function Content() {
             >
               {CONTENT_TYPES.map((c) => (
                 <option key={c.value} value={c.value}>
-                  {c.emoji} {c.label}
+                  {c.label}
                 </option>
               ))}
             </select>
@@ -227,7 +227,7 @@ export default function Content() {
             <option value="todos">Todos os tipos</option>
             {CONTENT_TYPES.map((c) => (
               <option key={c.value} value={c.value}>
-                {c.emoji} {c.label}
+                {c.label}
               </option>
             ))}
           </select>
@@ -254,13 +254,14 @@ export default function Content() {
             onClick={pickSuggestion}
             className="text-xs px-3 py-1.5 border border-slate-300 text-slate-600 hover:border-slate-400"
           >
-            🎲 Sugerir algo
+            Sugerir algo
           </button>
         </div>
 
         {suggestion && (
           <div className="bg-brand-50 border border-brand-200 p-3 text-sm text-brand-700">
-            {typeInfo(suggestion.category).emoji} Que tal: <span className="font-medium">{suggestion.title}</span>
+            <span className={`inline-block w-2 h-2 ${typeInfo(suggestion.category).dot} mr-1.5 align-middle`} />
+            Que tal: <span className="font-medium">{suggestion.title}</span>
             {suggestion.genre && ` (${genreLabel(suggestion.genre)})`}?
           </div>
         )}
@@ -288,7 +289,8 @@ export default function Content() {
                   </button>
                   <div>
                     <p className={`text-sm font-medium ${item.watched ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                      {typeInfo(item.category).emoji} {item.title}
+                      <span className={`inline-block w-2 h-2 ${typeInfo(item.category).dot} mr-1.5 align-middle`} />
+                      {item.title}
                       {item.genre && <span className="text-xs font-normal text-slate-400"> · {genreLabel(item.genre)}</span>}
                     </p>
                     {item.note && <p className="text-xs text-slate-400">{item.note}</p>}
@@ -305,7 +307,7 @@ export default function Content() {
 
       {/* ---------- Podcasts ---------- */}
       <section className="space-y-3 pt-4 border-t border-slate-100">
-        <h2 className="text-sm font-medium text-slate-700">Podcasts</h2>
+        <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Podcasts</h2>
         <form onSubmit={addPodcast} className="space-y-2 bg-white border border-slate-200 p-3">
           <div className="flex flex-wrap gap-2">
             <input
@@ -339,7 +341,7 @@ export default function Content() {
 
         {releasingToday.length > 0 && (
           <div className="bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700">
-            🎧 Hoje tem episódio novo de: {releasingToday.map((p) => p.title).join(', ')}
+            Hoje tem episódio novo de: {releasingToday.map((p) => p.title).join(', ')}
           </div>
         )}
 
@@ -354,7 +356,10 @@ export default function Content() {
               .map((p) => (
                 <li key={p.id} className="flex items-center justify-between bg-white border border-slate-200 px-4 py-3">
                   <div>
-                    <p className="text-sm font-medium text-slate-800">🎙️ {p.title}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      <span className="inline-block w-2 h-2 bg-teal-500 mr-1.5 align-middle" />
+                      {p.title}
+                    </p>
                     <p className="text-xs text-slate-400">
                       Lança toda {WEEKDAYS.find((d) => d.value === p.release_weekday)?.label}
                       {p.note ? ` · ${p.note}` : ''}

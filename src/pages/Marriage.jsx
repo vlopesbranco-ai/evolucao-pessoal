@@ -17,11 +17,11 @@ import Heatmap from '../components/Heatmap'
 import { computeCycleInsights, periodRanges } from '../lib/cycle'
 
 const MOODS = [
-  { value: 1, emoji: '😞', label: 'Muito mal' },
-  { value: 2, emoji: '🙁', label: 'Mal' },
-  { value: 3, emoji: '😐', label: 'Neutra' },
-  { value: 4, emoji: '🙂', label: 'Bem' },
-  { value: 5, emoji: '😄', label: 'Ótima' },
+  { value: 1, color: 'bg-red-500', label: 'Muito mal' },
+  { value: 2, color: 'bg-orange-500', label: 'Mal' },
+  { value: 3, color: 'bg-slate-400', label: 'Neutra' },
+  { value: 4, color: 'bg-lime-500', label: 'Bem' },
+  { value: 5, color: 'bg-emerald-600', label: 'Ótima' },
 ]
 
 const NOTE_CATEGORIES = [
@@ -367,7 +367,7 @@ export default function Marriage() {
     <div className="h-full flex flex-col overflow-y-hidden">
       <div className="shrink-0 space-y-3 pt-5">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Casamento</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Casamento</h1>
           <p className="text-sm text-slate-500">Registro manual e privado — só você alimenta esses dados.</p>
         </div>
 
@@ -421,7 +421,7 @@ export default function Marriage() {
               </p>
 
               <div className="bg-white border border-slate-200 p-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">Frequência por mês (últimos 12 meses)</p>
+                <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Frequência por mês (últimos 12 meses)</p>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={monthlyChartData}>
                     <XAxis dataKey="label" tick={{ fontSize: 11 }} />
@@ -433,7 +433,7 @@ export default function Marriage() {
               </div>
 
               <div className="bg-white border border-slate-200 p-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">Últimas 16 semanas</p>
+                <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Últimas 16 semanas</p>
                 <Heatmap data={heatmapData} weeks={16} />
               </div>
 
@@ -555,13 +555,13 @@ export default function Marriage() {
           <div className="bg-white border border-slate-200 p-4 space-y-2">
             <p className="text-sm font-medium text-slate-800">{fmt(calSelectedDate)}</p>
             {calPeriodOn(calSelectedDate) === 'registrado' && (
-              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">🩸 Dia de período registrado</p>
+              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">Dia de período registrado</p>
             )}
             {calPeriodOn(calSelectedDate) === 'previsto' && (
-              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">🩸 Dia de período previsto (estimativa)</p>
+              <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">Dia de período previsto (estimativa)</p>
             )}
             {calFertileOn(calSelectedDate) && (
-              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">🌸 Janela fértil estimada</p>
+              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">Janela fértil estimada</p>
             )}
             {calRegularIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-red-700 bg-red-50 px-2 py-1">❤️ Relação registrada</p>
@@ -585,7 +585,7 @@ export default function Marriage() {
       {tab === 'registros' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Ciclo da esposa</h2>
+            <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Ciclo da esposa</h2>
             <form onSubmit={addCycle} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 type="date"
@@ -699,7 +699,7 @@ export default function Marriage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Atividade íntima</h2>
+            <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Atividade íntima</h2>
             <form onSubmit={addIntimacy} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 type="date"
@@ -827,11 +827,12 @@ export default function Marriage() {
                   key={m.value}
                   onClick={() => setMoodValue(m.value)}
                   title={m.label}
-                  className={`flex-1 text-2xl py-2 border ${
+                  className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 border ${
                     moodValue === m.value ? 'border-brand-600 bg-brand-50' : 'border-transparent hover:bg-slate-50'
                   }`}
                 >
-                  {m.emoji}
+                  <span className={`w-4 h-4 ${m.color}`} />
+                  <span className="text-[9px] text-slate-500 leading-none">{m.label}</span>
                 </button>
               ))}
             </div>
@@ -842,7 +843,7 @@ export default function Marriage() {
 
           {moodChartData.length >= 2 && (
             <div className="bg-white border border-slate-200 p-4">
-              <p className="text-sm font-medium text-slate-700 mb-3">Tendência (últimos registros)</p>
+              <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Tendência (últimos registros)</p>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={moodChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -867,8 +868,9 @@ export default function Marriage() {
                   className="text-xs text-slate-600 flex justify-between items-start bg-white border border-slate-200 px-3 py-2"
                 >
                   <div>
-                    <p className="font-medium">
-                      {fmt(m.mood_date)} · {MOODS.find((x) => x.value === m.mood)?.emoji}{' '}
+                    <p className="font-medium flex items-center gap-1.5">
+                      {fmt(m.mood_date)} ·
+                      <span className={`inline-block w-2 h-2 ${MOODS.find((x) => x.value === m.mood)?.color}`} />
                       {MOODS.find((x) => x.value === m.mood)?.label}
                     </p>
                     {m.note && <p className="text-slate-400">{m.note}</p>}
@@ -886,7 +888,7 @@ export default function Marriage() {
       {tab === 'datas' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Datas importantes</h2>
+            <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Datas importantes</h2>
             <form onSubmit={addDate} className="space-y-2 bg-white border border-slate-200 p-3">
               <input
                 value={dateTitle}
@@ -940,7 +942,7 @@ export default function Marriage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-medium text-slate-700">Anotações</h2>
+            <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Anotações</h2>
             <form onSubmit={addNote} className="space-y-2 bg-white border border-slate-200 p-3">
               <div className="flex flex-wrap gap-1">
                 {NOTE_CATEGORIES.map((c) => (

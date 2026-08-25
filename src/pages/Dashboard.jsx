@@ -265,7 +265,7 @@ export default function Dashboard() {
   return (
     <div className="h-full overflow-y-auto safe-scroll py-5 space-y-6">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">Painel de hoje</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel de hoje</h1>
         <p className="text-sm text-slate-500">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
       </div>
 
@@ -322,7 +322,7 @@ export default function Dashboard() {
 
       <div className="bg-white border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-slate-800">Essa semana</p>
+          <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide">Essa semana</p>
           <Link to="/calendario" className="text-xs text-slate-400 hover:text-slate-700">
             ver calendário
           </Link>
@@ -363,7 +363,7 @@ export default function Dashboard() {
       {!loading && (
         <>
           <div className="bg-white border border-slate-200 p-4">
-            <p className="text-sm font-medium text-slate-700 mb-3">Consistência (últimas 16 semanas)</p>
+            <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Consistência (últimas 16 semanas)</p>
             <Heatmap data={heatmapData} weeks={16} mode="percentage" />
             <div className="flex items-center gap-3 mt-3 text-[11px] text-slate-400">
               <span className="flex items-center gap-1">
@@ -379,7 +379,7 @@ export default function Dashboard() {
           </div>
 
           <div className="bg-white border border-slate-200 p-4">
-            <p className="text-sm font-medium text-slate-700 mb-3">Check-ins por semana</p>
+            <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Check-ins por semana</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={weeklyData}>
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
@@ -417,7 +417,7 @@ export default function Dashboard() {
 
             {habitConsistency.length > 0 && (
               <div className="bg-white border border-slate-200 p-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">Consistência por hábito (últimos 30 dias)</p>
+                <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Consistência por hábito (últimos 30 dias)</p>
                 <ul className="space-y-2">
                   {habitConsistency.map((h) => (
                     <li key={h.id} className="space-y-1">
@@ -441,7 +441,7 @@ export default function Dashboard() {
 
             {insights.length > 0 && (
               <div className="bg-white border border-slate-200 p-4">
-                <p className="text-sm font-medium text-slate-700 mb-3">Três leituras</p>
+                <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Três leituras</p>
                 <ul className="space-y-2 text-sm text-slate-600">
                   {insights.map((line, i) => (
                     <li key={i} className="flex gap-2">
