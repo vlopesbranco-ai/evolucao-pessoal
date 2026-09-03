@@ -193,7 +193,8 @@ function HabitTypeToggle({ value, onChange }) {
 export default function Habits() {
   const { user } = useAuth()
   const [habits, setHabits] = useState([])
-  const [logsToday, setLogsToday] = useState(new Set())
+  const [logsByDate, setLogsByDate] = useState({})
+  const [selectedDate, setSelectedDate] = useState(todayStr())
   const [streaks, setStreaks] = useState({})
   const [weeklyProgress, setWeeklyProgress] = useState({})
   const [showAddForm, setShowAddForm] = useState(false)
@@ -218,8 +219,12 @@ export default function Habits() {
 
     setHabits(habitsData ?? [])
 
-    const todaySet = new Set((logsData ?? []).filter((l) => l.log_date === todayStr()).map((l) => l.habit_id))
-    setLogsToday(todaySet)
+    const byDate = {}
+    for (const log of logsData ?? []) {
+      if (!byDate[log.log_date]) byDate[log.log_date] = new Set()
+      byDate[log.log_date].add(log.habit_id)
+    }
+    setLogsByDate(byDate)
 
     const byHabit = {}
     for (const log of logsData ?? []) {
@@ -304,12 +309,13 @@ export default function Habits() {
     load()
   }
 
-  async function toggleToday(habit) {
-    const done = logsToday.has(habit.id)
+  async function toggleForDate(habit, dateStr) {
+    const doneSet = logsByDate[dateStr] ?? new Set()
+    const done = doneSet.has(habit.id)
     if (done) {
-      await supabase.from('habit_logs').delete().eq('habit_id', habit.id).eq('log_date', todayStr())
+      await supabase.from('habit_logs').delete().eq('habit_id', habit.id).eq('log_date', dateStr)
     } else {
-      await supabase.from('habit_logs').insert({ habit_id: habit.id, user_id: user.id, log_date: todayStr() })
+      await supabase.from('habit_logs').insert({ habit_id: habit.id, user_id: user.id, log_date: dateStr })
     }
     load()
   }
@@ -351,15 +357,28 @@ export default function Habits() {
   }, [filteredHabits])
 
   const todayProgress = useMemo(() => {
+    const doneSet = logsByDate[todayStr()] ?? new Set()
     const scheduled = habits.filter((h) => isScheduledToday(h))
-    const done = scheduled.filter((h) => logsToday.has(h.id)).length
+    const done = scheduled.filter((h) => doneSet.has(h.id)).length
     return { done, total: scheduled.length }
-  }, [habits, logsToday])
+  }, [habits, logsByDate])
+
+  const recentDays = useMemo(() => {
+    const days = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days.push(d)
+    }
+    return days
+  }, [])
   const todayBucket = pctBucket(todayProgress.done, todayProgress.total)
 
   function renderHabitRow(habit) {
-    const done = logsToday.has(habit.id)
-    const scheduledToday = isScheduledToday(habit)
+    const doneSet = logsByDate[selectedDate] ?? new Set()
+    const done = doneSet.has(habit.id)
+    const isToday = selectedDate === todayStr()
+    const scheduledToday = isScheduledOn(habit, new Date(selectedDate + 'T00:00:00'))
     const isEditing = editingId === habit.id
 
     if (isEditing) {
@@ -397,7 +416,7 @@ export default function Habits() {
       >
         <div className="flex items-center gap-3 min-w-0">
           <button
-            onClick={() => scheduledToday && toggleToday(habit)}
+            onClick={() => scheduledToday && toggleForDate(habit, selectedDate)}
             disabled={!scheduledToday}
             className={`w-6 h-6 border flex items-center justify-center text-xs shrink-0 ${
               done
@@ -420,7 +439,7 @@ export default function Habits() {
             </p>
             <p className="text-xs text-slate-400">
               {daysLabel(habit)}
-              {!scheduledToday ? ' · não é hoje' : ''}
+              {!scheduledToday ? (isToday ? ' · não é hoje' : ' · não programado nesse dia') : ''}
             </p>
           </div>
         </div>
@@ -464,6 +483,47 @@ export default function Habits() {
           {todayProgress.done}/{todayProgress.total} hábitos de hoje concluídos
         </div>
       )}
+
+      <div className="space-y-2">
+        <div className="flex gap-1.5 overflow-x-auto safe-scroll-x pb-1">
+          {recentDays.map((d) => {
+            const ds = localDateStr(d)
+            const isSel = ds === selectedDate
+            const isToday = ds === todayStr()
+            return (
+              <button
+                key={ds}
+                onClick={() => setSelectedDate(ds)}
+                className={`flex flex-col items-center justify-center shrink-0 w-11 py-1.5 border text-xs ${
+                  isSel
+                    ? 'bg-brand-600 border-brand-600 text-white'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
+                }`}
+              >
+                <span className="text-[9px] uppercase tracking-wide opacity-80">{WEEKDAYS[d.getDay()].label}</span>
+                <span className="text-sm font-bold">{d.getDate()}</span>
+                {isToday && <span className={`text-[8px] ${isSel ? 'text-white/80' : 'text-brand-600'}`}>hoje</span>}
+              </button>
+            )
+          })}
+        </div>
+
+        {selectedDate !== todayStr() && (
+          <div className="flex items-center justify-between gap-2 bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+            <span>
+              Marcando hábitos de{' '}
+              {new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+              })}
+            </span>
+            <button onClick={() => setSelectedDate(todayStr())} className="font-semibold underline shrink-0">
+              voltar pra hoje
+            </button>
+          </div>
+        )}
+      </div>
 
       {showAddForm && (
         <form onSubmit={addHabit} className="space-y-3 bg-white border border-slate-200 p-3">
