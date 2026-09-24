@@ -84,6 +84,7 @@ export default function Marriage() {
   const [intimacyDate, setIntimacyDate] = useState(todayStr())
   const [usedProtection, setUsedProtection] = useState(true)
   const [intimacyType, setIntimacyType] = useState('sexo') // 'sexo' | 'oral'
+  const [initiatedBy, setInitiatedBy] = useState(null) // 'eu' | 'ela' | 'ambos' | null
 
   const [cycleDate, setCycleDate] = useState(todayStr())
   const [cyclePeriodLength, setCyclePeriodLength] = useState(5)
@@ -133,12 +134,14 @@ export default function Marriage() {
       occurred_at: intimacyDate,
       used_protection: intimacyType === 'oral' ? null : usedProtection,
       oral: intimacyType === 'oral',
+      initiated_by: initiatedBy,
       note: intimacyNote.trim() || null,
     })
     setIntimacyNote('')
     setIntimacyDate(todayStr())
     setUsedProtection(true)
     setIntimacyType('sexo')
+    setInitiatedBy(null)
     load()
   }
 
@@ -302,6 +305,10 @@ export default function Marriage() {
     const withProtection = intimacyLogs.filter((l) => l.used_protection === true).length
     const withoutProtection = intimacyLogs.filter((l) => l.used_protection === false).length
     const oralCount = intimacyLogs.filter((l) => l.oral).length
+    const initiatedByEu = intimacyLogs.filter((l) => l.initiated_by === 'eu').length
+    const initiatedByEla = intimacyLogs.filter((l) => l.initiated_by === 'ela').length
+    const initiatedByAmbos = intimacyLogs.filter((l) => l.initiated_by === 'ambos').length
+    const initiatedKnown = initiatedByEu + initiatedByEla + initiatedByAmbos
 
     return {
       avgPerWeek,
@@ -311,6 +318,10 @@ export default function Marriage() {
       withProtection,
       withoutProtection,
       oralCount,
+      initiatedByEu,
+      initiatedByEla,
+      initiatedByAmbos,
+      initiatedKnown,
       total: intimacyLogs.length,
     }
   }, [intimacyLogs])
@@ -419,6 +430,12 @@ export default function Marriage() {
               <p className="text-xs text-slate-400">
                 Sexo oral registrado em {stats.oralCount} de {stats.total} registros.
               </p>
+              {stats.initiatedKnown > 0 && (
+                <p className="text-xs text-slate-400">
+                  Quem iniciou (de {stats.initiatedKnown} registros informados): você {stats.initiatedByEu}, ela{' '}
+                  {stats.initiatedByEla}, os dois {stats.initiatedByAmbos}.
+                </p>
+              )}
 
               <div className="bg-white border border-slate-200 p-4">
                 <p className="text-xs font-semibold text-slate-900 uppercase tracking-wide mb-3">Frequência por mês (últimos 12 meses)</p>
@@ -749,6 +766,29 @@ export default function Marriage() {
                   </button>
                 </div>
               )}
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Quem iniciou (opcional)</p>
+                <div className="flex gap-1 text-xs">
+                  {[
+                    { value: 'eu', label: 'Eu' },
+                    { value: 'ela', label: 'Ela' },
+                    { value: 'ambos', label: 'Os dois' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setInitiatedBy((v) => (v === opt.value ? null : opt.value))}
+                      className={`flex-1 px-3 py-1.5 border ${
+                        initiatedBy === opt.value
+                          ? 'bg-brand-600 text-white border-brand-600'
+                          : 'border-slate-300 text-slate-500'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <input
                 value={intimacyNote}
                 onChange={(e) => setIntimacyNote(e.target.value)}
@@ -788,6 +828,11 @@ export default function Marriage() {
                               </span>
                             )}
                           </>
+                        )}
+                        {i.initiated_by && (
+                          <span className="ml-1.5 inline-block px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-medium align-middle">
+                            {i.initiated_by === 'eu' ? 'iniciei eu' : i.initiated_by === 'ela' ? 'iniciou ela' : 'os dois'}
+                          </span>
                         )}
                       </p>
                       {i.note && <p className="text-slate-400">{i.note}</p>}
