@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { todayStr, localDateStr, effectiveDueDate, daysLate } from '../lib/date'
 import { EVENT_CATEGORIES, categoryInfo } from '../lib/eventCategories'
+import Reminders from '../components/Reminders'
 
 const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const MONTH_LABELS = [
@@ -458,6 +459,8 @@ export default function CalendarPage() {
               </ul>
             )}
           </div>
+
+          <Reminders />
         </div>
       </div>
     </div>
