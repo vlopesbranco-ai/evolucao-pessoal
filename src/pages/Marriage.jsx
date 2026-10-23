@@ -256,6 +256,15 @@ export default function Marriage() {
     return !!(cycleInsights && calInRange(dateStr, cycleInsights.fertileWindow))
   }
 
+  // Dias da margem de incerteza: dentro da faixa ampla, mas fora da janela fertil
+  function calMarginOn(dateStr) {
+    return !!(
+      cycleInsights &&
+      calInRange(dateStr, cycleInsights.fertileWindowWide) &&
+      !calInRange(dateStr, cycleInsights.fertileWindow)
+    )
+  }
+
   function calPeakOn(dateStr) {
     return !!(cycleInsights && calInRange(dateStr, cycleInsights.peakWindow))
   }
@@ -536,6 +545,7 @@ export default function Marriage() {
                 const isSelected = dateStr === calSelectedDate
                 const periodStatus = calPeriodOn(dateStr)
                 const fertile = calFertileOn(dateStr)
+                const margin = calMarginOn(dateStr)
                 const regularIntimacy = calRegularIntimacyOn(dateStr)
                 const oralOnly = calOralOnlyOn(dateStr)
 
@@ -551,6 +561,9 @@ export default function Marriage() {
                   const peak = calPeakOn(dateStr)
                   bg = peak ? 'bg-purple-300' : 'bg-purple-100'
                   textColor = peak ? 'text-purple-900' : 'text-purple-700'
+                } else if (margin) {
+                  bg = 'bg-purple-50'
+                  textColor = 'text-purple-500'
                 }
 
                 return (
@@ -562,6 +575,8 @@ export default function Marriage() {
                         ? 'border-brand-600 ring-2 ring-brand-600'
                         : isToday
                         ? 'border-slate-500'
+                        : margin && !periodStatus
+                        ? 'border-dashed border-purple-300'
                         : 'border-transparent'
                     }`}
                   >
@@ -582,6 +597,7 @@ export default function Marriage() {
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-100 border border-pink-300"/> Período previsto</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-100 border border-purple-300"/> Janela fértil</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-300 border border-purple-400"/> Pico</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-50 border border-dashed border-purple-300"/> Margem (±{cycleInsights?.margin ?? '?'}d)</span>
               <span className="flex items-center gap-1">❤️ Relação</span>
               <span className="flex items-center gap-1">💜 Outra intimidade</span>
             </div>
@@ -600,13 +616,18 @@ export default function Marriage() {
                 {calPeakOn(calSelectedDate) ? 'Pico de fertilidade (estimativa)' : 'Janela fértil estimada'}
               </p>
             )}
+            {calMarginOn(calSelectedDate) && !calPeriodOn(calSelectedDate) && (
+              <p className="text-xs text-purple-600 bg-purple-50 px-2 py-1">
+                Margem de incerteza da janela fértil (±{cycleInsights.margin} dias)
+              </p>
+            )}
             {calRegularIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-red-700 bg-red-50 px-2 py-1">❤️ Relação registrada</p>
             )}
             {calOralOnlyOn(calSelectedDate) && (
               <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">💜 Outra intimidade registrada</p>
             )}
-            {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
+            {!calPeriodOn(calSelectedDate) && !calFertileOn(calSelectedDate) && !calMarginOn(calSelectedDate) && !calIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-slate-400">Nenhum registro nesse dia.</p>
             )}
           </div>
