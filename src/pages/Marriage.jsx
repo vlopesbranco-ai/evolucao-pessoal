@@ -256,6 +256,10 @@ export default function Marriage() {
     return !!(cycleInsights && calInRange(dateStr, cycleInsights.fertileWindow))
   }
 
+  function calPeakOn(dateStr) {
+    return !!(cycleInsights && calInRange(dateStr, cycleInsights.peakWindow))
+  }
+
   function calIntimacyLogsOn(dateStr) {
     return intimacyLogs.filter((i) => i.occurred_at === dateStr)
   }
@@ -477,6 +481,18 @@ export default function Marriage() {
                       {fmt(cycleInsights.fertileWindow.start)} a {fmt(cycleInsights.fertileWindow.end)}
                     </span>
                   </p>
+                  <p className="text-sm text-slate-700">
+                    Pico de fertilidade:{' '}
+                    <span className="font-semibold">
+                      {fmt(cycleInsights.peakWindow.start)} a {fmt(cycleInsights.peakWindow.end)}
+                    </span>{' '}
+                    <span className="text-slate-400">(ovulação estimada em {fmt(cycleInsights.ovulation)})</span>
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Margem de incerteza: ±{cycleInsights.margin} dias (com base em {cycleInsights.sampleSize}{' '}
+                    {cycleInsights.sampleSize === 1 ? 'ciclo' : 'ciclos'}; quanto mais ciclos registrados, mais
+                    precisa). Por precisão máxima, confirme com teste de ovulação (LH) ou temperatura basal.
+                  </p>
                   <p className="text-xs text-slate-400 pt-1">Veja as faixas completas na Agenda.</p>
                 </div>
               )}
@@ -532,8 +548,9 @@ export default function Marriage() {
                   bg = 'bg-pink-100'
                   textColor = 'text-pink-700'
                 } else if (fertile) {
-                  bg = 'bg-purple-100'
-                  textColor = 'text-purple-700'
+                  const peak = calPeakOn(dateStr)
+                  bg = peak ? 'bg-purple-300' : 'bg-purple-100'
+                  textColor = peak ? 'text-purple-900' : 'text-purple-700'
                 }
 
                 return (
@@ -564,6 +581,7 @@ export default function Marriage() {
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-500"/> Período registrado</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-pink-100 border border-pink-300"/> Período previsto</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-100 border border-purple-300"/> Janela fértil</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-300 border border-purple-400"/> Pico</span>
               <span className="flex items-center gap-1">❤️ Relação</span>
               <span className="flex items-center gap-1">💜 Outra intimidade</span>
             </div>
@@ -578,7 +596,9 @@ export default function Marriage() {
               <p className="text-xs text-pink-700 bg-pink-50 px-2 py-1">Dia de período previsto (estimativa)</p>
             )}
             {calFertileOn(calSelectedDate) && (
-              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">Janela fértil estimada</p>
+              <p className="text-xs text-purple-700 bg-purple-50 px-2 py-1">
+                {calPeakOn(calSelectedDate) ? 'Pico de fertilidade (estimativa)' : 'Janela fértil estimada'}
+              </p>
             )}
             {calRegularIntimacyOn(calSelectedDate) && (
               <p className="text-xs text-red-700 bg-red-50 px-2 py-1">❤️ Relação registrada</p>

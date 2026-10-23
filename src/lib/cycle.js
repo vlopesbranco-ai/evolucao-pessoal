@@ -1,5 +1,20 @@
 import { localDateStr } from './date'
 
+// Parametros baseados na literatura:
+// - Janela fertil = 6 dias, os 5 anteriores a ovulacao + o dia da ovulacao
+//   (Wilcox et al., NEJM 1995; BMJ 2000). Depois da ovulacao a chance e ~0.
+// - Pico de fertilidade = os 2 dias antes da ovulacao + o dia dela.
+// - Fase lutea: media real ~12,4 dias (Bull et al., npj Digit Med 2019, 612 mil
+//   ciclos), nao os 14 da regra classica. Usamos 13 (entre 12,4 e a media
+//   classica ~13-14 de estudos com marcadores hormonais).
+// - A ovulacao varia muito entre ciclos; so ~10% dos ciclos de 28 dias ovulam
+//   exatamente 14 dias antes da menstruacao (Wilcox, BMJ 2000). Por isso a
+//   estimativa carrega uma margem de incerteza calculada dos proprios ciclos.
+const LUTEAL_DAYS = 13
+const LUTEAL_SD = 2
+const DEFAULT_CYCLE_SD = 4
+const MAX_RECENT_CYCLES = 6
+
 function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000)
 }
@@ -29,11 +44,22 @@ export function computeCycleInsights(cycleLogs) {
   if (!cycleLogs || cycleLogs.length < 2) return null
 
   const sorted = [...cycleLogs].sort((a, b) => new Date(a.cycle_start) - new Date(b.cycle_start))
-  const diffs = []
+  const allDiffs = []
   for (let i = 1; i < sorted.length; i++) {
-    diffs.push(daysBetween(sorted[i - 1].cycle_start, sorted[i].cycle_start))
+    allDiffs.push(daysBetween(sorted[i - 1].cycle_start, sorted[i].cycle_start))
   }
-  const avgCycleLength = Math.round(diffs.reduce((a, b) => a + b, 0) / diffs.length)
+  // Usa so os ciclos mais recentes e ignora intervalos implausiveis (esquecimento
+  // de registro, gravidez, etc.), a menos que nao sobre nenhum.
+  const plausible = allDiffs.filter((d) => d >= 18 && d <= 60)
+  const diffs = (plausible.length > 0 ? plausible : allDiffs).slice(-MAX_RECENT_CYCLES)
+  const mean = diffs.reduce((a, b) => a + b, 0) / diffs.length
+  const avgCycleLength = Math.round(mean)
+  const cycleSd =
+    diffs.length >= 3
+      ? Math.sqrt(diffs.reduce((acc, d) => acc + (d - mean) ** 2, 0) / (diffs.length - 1))
+      : DEFAULT_CYCLE_SD
+  // Incerteza total (dias) = variacao do tamanho do ciclo + variacao da fase lutea
+  const margin = Math.min(7, Math.max(2, Math.round(Math.sqrt(cycleSd ** 2 + LUTEAL_SD ** 2))))
 
   const last = sorted[sorted.length - 1]
 
@@ -51,13 +77,18 @@ export function computeCycleInsights(cycleLogs) {
   const predictedStart = addDays(last.cycle_start, avgCycleLength)
   const predictedEnd = addDays(predictedStart, periodLength - 1)
 
-  const ovulation = addDays(predictedStart, -14)
+  const ovulation = addDays(predictedStart, -LUTEAL_DAYS)
   const fertileStart = addDays(ovulation, -5)
-  const fertileEnd = addDays(ovulation, 1)
 
   return {
     avgCycleLength,
+    cycleSd: Math.round(cycleSd * 10) / 10,
+    sampleSize: diffs.length,
+    margin,
+    ovulation,
     predictedNext: { start: predictedStart, end: predictedEnd },
-    fertileWindow: { start: fertileStart, end: fertileEnd },
+    fertileWindow: { start: fertileStart, end: ovulation },
+    peakWindow: { start: addDays(ovulation, -2), end: ovulation },
+    fertileWindowWide: { start: addDays(fertileStart, -margin), end: addDays(ovulation, margin) },
   }
 }
